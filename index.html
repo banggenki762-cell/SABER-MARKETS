@@ -2,30 +2,16 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SABER MARKETS</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100vw; height: 100vh; background-color: #131722; overflow: hidden; }
+    body { margin: 0; background: #131722; color: #ffffff; font-family: sans-serif; }
+    #status { padding: 20px; text-align: center; font-size: 16px; }
+    iframe { width: 100vw; height: 100vh; border: none; display: block; }
   </style>
 </head>
 <body>
-  <div class="tradingview-widget-container" style="height:100vh;width:100vw">
-    <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-    <script type="text/javascript" src="https://tradingview.com" async>
-    {
-      "autosize": true,
-      "symbol": "BINANCE:BTCUSDT",
-      "interval": "15",
-      "timezone": "Asia/Makassar",
-      "theme": "dark",
-      "style": "1",
-      "locale": "id",
-      "allow_symbol_change": true,
-      "calendar": false,
-      "support_host": "https://tradingview.com"
-    }
-    </script>
-  </div>
+  <div id="status">Memuat Chart SABER MARKETS...</div>
+  <iframe id="tv_frame" src="https://tradingview-widget.com" onload="document.getElementById('status').style.display='none';"></iframe>
 </body>
 </html>
