@@ -4,14 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SABER MARKETS</title>
-  <script src="https://jsdelivr.net"></script>
+  <script src="https://unpkg.com"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
     body { background: #131722; color: #d1d4dc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     #topbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #1e222d; border-bottom: 1px solid #2a2e39; flex-wrap: wrap; }
     .brand { font-weight: bold; color: #2962ff; font-size: 14px; margin-right: 4px; }
-    select, button { background: #2a2e39; color: #fff; border: 1px solid #363a45; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
-    button.active { background: #2962ff; border-color: #2962ff; }
+    select { background: #2a2e39; color: #fff; border: 1px solid #363a45; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
     #price { margin-left: auto; font-weight: bold; font-size: 15px; color: #089981; }
     #chart { flex: 1; width: 100%; }
   </style>
@@ -20,20 +19,20 @@
   <div id="topbar">
     <span class="brand">SABER MARKETS</span>
     <select id="symbol">
-      <option value="BTCUSDT">BTC/USDT</option>
-      <option value="ETHUSDT">ETH/USDT</option>
-      <option value="SOLUSDT">SOL/USDT</option>
-      <option value="XRPUSDT">XRP/USDT</option>
-      <option value="PAXGUSDT">GOLD (XAU)</option>
-      <option value="BNBUSDT">BNB/USDT</option>
+      <option value="BTC">BTC/USDT</option>
+      <option value="ETH">ETH/USDT</option>
+      <option value="SOL">SOL/USDT</option>
+      <option value="XRP">XRP/USDT</option>
+      <option value="PAXG">GOLD (XAU)</option>
+      <option value="BNB">BNB/USDT</option>
     </select>
     <select id="interval">
       <option value="1m">1m</option>
       <option value="5m">5m</option>
       <option value="15m" selected>15m</option>
-      <option value="1h">1H</option>
-      <option value="4h">4H</option>
-      <option value="1d">1D</option>
+      <option value="1H">1H</option>
+      <option value="4H">4H</option>
+      <option value="1D">1D</option>
     </select>
     <span id="price">Memuat...</span>
   </div>
@@ -54,44 +53,38 @@
       wickUpColor: '#089981', wickDownColor: '#f23645'
     });
 
-    let ws;
+    let timer;
     async function loadChart() {
       const sym = document.getElementById('symbol').value;
       const intv = document.getElementById('interval').value;
+      const instId = sym + '-USDT';
       document.getElementById('price').innerText = 'Memuat...';
 
-      if (ws) ws.close();
+      if (timer) clearInterval(timer);
 
-      try {
-        const res = await fetch(`https://binance.vision{sym}&interval=${intv}&limit=300`);
-        const data = await res.json();
-        const candles = data.map(d => ({
-          time: d[0] / 1000,
-          open: parseFloat(d[1]),
-          high: parseFloat(d[2]),
-          low: parseFloat(d[3]),
-          close: parseFloat(d[4])
-        }));
-        candleSeries.setData(candles);
-        const last = candles[candles.length - 1];
-        document.getElementById('price').innerText = last.close;
-
-        ws = new WebSocket(`wss://data-stream.binance.vision/ws/${sym.toLowerCase()}@kline_${intv}`);
-        ws.onmessage = (e) => {
-          const msg = JSON.parse(e.data).k;
-          const c = {
-            time: msg.t / 1000,
-            open: parseFloat(msg.o),
-            high: parseFloat(msg.h),
-            low: parseFloat(msg.l),
-            close: parseFloat(msg.c)
-          };
-          candleSeries.update(c);
-          document.getElementById('price').innerText = c.close;
-        };
-      } catch (err) {
-        document.getElementById('price').innerText = 'Cek Koneksi';
+      async function fetchCandles() {
+        try {
+          const res = await fetch(`https://okx.com{instId}&bar=${intv}&limit=200`);
+          const json = await res.json();
+          if (json && json.data && json.data.length > 0) {
+            const candles = json.data.reverse().map(d => ({
+              time: Math.floor(Number(d.at(0)) / 1000),
+              open: parseFloat(d.at(1)),
+              high: parseFloat(d.at(2)),
+              low: parseFloat(d.at(3)),
+              close: parseFloat(d.at(4))
+            }));
+            candleSeries.setData(candles);
+            const last = candles.at(-1);
+            document.getElementById('price').innerText = '$' + last.close.toLocaleString();
+          }
+        } catch (err) {
+          document.getElementById('price').innerText = 'Gagal Muat';
+        }
       }
+
+      await fetchCandles();
+      timer = setInterval(fetchCandles, 3000);
     }
 
     window.addEventListener('resize', () => {
