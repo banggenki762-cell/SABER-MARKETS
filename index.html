@@ -5,123 +5,256 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SABER MARKETS</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;user-select:none;-webkit-user-select:none}
-body{background:#131722;color:#d1d4dc;display:flex;flex-direction:column;height:100vh;overflow:hidden}
-#top{display:flex;align-items:center;gap:5px;padding:7px 9px;background:#1e222d;border-bottom:1px solid #2a2e39}
-.brand{font-weight:800;color:#2962ff;font-size:12px;white-space:nowrap}
-select,button{background:#2a2e39;color:#fff;border:1px solid #363a45;padding:5px 7px;border-radius:4px;font-size:11px;outline:none}
-#sym{max-width:135px}
-button.on{background:#2962ff;border-color:#2962ff}
-#prc{margin-left:auto;font-weight:700;font-size:13px;color:#089981}
-#ohlc{display:flex;gap:7px;padding:4px 9px;background:#131722;font-size:10px;color:#868993;border-bottom:1px solid #1e222d}
-#ohlc b{color:#d1d4dc;font-weight:500}
-#bar{display:flex;gap:4px;padding:5px 9px;background:#181c27;border-bottom:1px solid #2a2e39;overflow-x:auto}
-#wrap{flex:1;position:relative;width:100%;height:100%;touch-action:none}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;background:#000000;color:#d1d4dc;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh}
+.page{flex:1;display:none;flex-direction:column;min-height:0;overflow:hidden}
+.page.active{display:flex}
+#wlHead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#000;border-bottom:1px solid #1e222d}
+.logo{font-weight:900;font-size:15px;letter-spacing:.5px;color:#fff}
+.logo span{color:#2962ff}
+#wlSearch{width:100%;background:#181c27;border:1px solid #2a2e39;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;outline:none}
+#wlList{flex:1;overflow-y:auto;padding:4px 0}
+.wl-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #14171f;cursor:pointer}
+.wl-item:active{background:#181c27}
+.ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;flex-shrink:0}
+.wl-mid{flex:1;min-width:0}
+.wl-sym{font-weight:700;font-size:14px;color:#fff;display:flex;align-items:center;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block}
+.wl-desc{font-size:11px;color:#787b86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.wl-right{text-align:right;flex-shrink:0}
+.wl-prc{font-weight:700;font-size:14px;color:#fff}
+.wl-prc sup{font-size:9px;margin-left:1px;opacity:.85}
+.wl-chg{font-size:11px;margin-top:2px;font-weight:500}
+.up{color:#089981}.dn{color:#f23645}.nt{color:#787b86}
+#chartWrap{flex:1;position:relative;width:100%;min-height:0;touch-action:none;background:#0b0e14}
 canvas{display:block;width:100%;height:100%}
+#hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(41,98,255,.92);color:#fff;padding:4px 12px;border-radius:12px;font-size:11px;display:none;pointer-events:none;white-space:nowrap}
+#toolStrip{display:flex;align-items:center;gap:10px;padding:6px 10px;background:#0b0e14;border-top:1px solid #1e222d;flex-shrink:0;overflow-x:auto}
+.sym-picker{display:flex;align-items:center;gap:6px;background:#161a23;padding:5px 9px;border-radius:6px;border:1px solid #2a2e39;flex-shrink:0}
+.sym-picker b{color:#fff;font-size:13px}
+.sym-picker select{background:none;border:none;color:#d1d4dc;font-size:12px;font-weight:600;outline:none}
+.tbtn{background:none;border:none;color:#d1d4dc;padding:5px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7}
+.tbtn.on{color:#2962ff;background:rgba(41,98,255,.16)}
+#navBar{display:flex;justify-content:space-around;align-items:center;padding:6px 0 8px;background:#000;border-top:1px solid #1e222d;flex-shrink:0}
+.nav{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:#787b86;font-size:10px}
+.nav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7}
+.nav.active{color:#fff}
+.sheet{position:absolute;bottom:8px;left:10px;right:10px;background:#161a23;border:1px solid #2a2e39;border-radius:10px;padding:10px;display:none;z-index:20}
+.sheet.show{display:block}
+.s-title{font-size:11px;font-weight:700;color:#787b86;margin-bottom:8px;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.opt{background:#222631;border:1px solid #2f3441;color:#d1d4dc;padding:8px 10px;border-radius:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.opt.on{border-color:#2962ff;background:rgba(41,98,255,.22);color:#fff}
+@media (orientation:landscape){
+  #navBar{display:none}
+  #toolStrip{padding:4px 10px}
+}
 </style>
 </head>
 <body>
-<div id="top">
-  <span class="brand">SABER MARKETS</span>
-  <select id="sym">
-    <optgroup label="FOREX">
-      <option value="FX:EUR:USD:1.0520">EUR/USD</option>
-      <option value="FX:GBP:USD:1.2640">GBP/USD</option>
-      <option value="FX:USD:JPY:154.20">USD/JPY</option>
-      <option value="FX:AUD:USD:0.6510">AUD/USD</option>
-      <option value="FX:USD:IDR:15920">USD/IDR</option>
-    </optgroup>
-    <optgroup label="EMAS & KOMODITAS">
-      <option value="CM:XAU:USD:2635.50">GOLD (XAU/USD)</option>
-      <option value="CM:XAG:USD:31.25">SILVER (XAG/USD)</option>
-      <option value="CM:WTI:USD:69.40">CRUDE OIL (WTI)</option>
-    </optgroup>
-    <optgroup label="KRIPTO">
-      <option value="CR:BTC:USD:96500">BTC/USD</option>
-      <option value="CR:ETH:USD:3380">ETH/USD</option>
-      <option value="CR:SOL:USD:238.50">SOL/USD</option>
-      <option value="CR:XRP:USD:1.4250">XRP/USD</option>
-      <option value="CR:BNB:USD:645.00">BNB/USD</option>
-    </optgroup>
-    <optgroup label="SAHAM & INDEKS">
-      <option value="ST:IHSG:IDR:7245">IHSG (IDX)</option>
-      <option value="ST:BBCA:IDR:10150">BBCA (BCA)</option>
-      <option value="ST:BBRI:IDR:4380">BBRI (BRI)</option>
-      <option value="ST:NVDA:USD:142.50">NVIDIA (NVDA)</option>
-      <option value="ST:SPX:USD:5965">S&P 500</option>
-    </optgroup>
-  </select>
-  <select id="tf">
-    <option value="1">1m</option><option value="5">5m</option><option value="15" selected>15m</option>
-    <option value="60">1H</option><option value="240">4H</option><option value="1440">1D</option>
-  </select>
-  <span id="prc">0.00</span>
+<div id="pgWl" class="page">
+  <div id="wlHead">
+    <div class="logo">SABER <span>MARKETS</span></div>
+    <span style="font-size:11px;color:#787b86">Daftar Pantau</span>
+  </div>
+  <div style="padding:8px 12px;background:#000;border-bottom:1px solid #14171f">
+    <input id="wlSearch" type="text" placeholder="Cari simbol (XAUUSD, BBCA, BTC, EURUSD...)">
+  </div>
+  <div id="wlList"></div>
 </div>
-<div id="ohlc">
-  <span>O:<b id="oV">-</b></span><span>H:<b id="hV">-</b></span><span>L:<b id="lV">-</b></span><span>C:<b id="cV">-</b></span>
-  <span style="margin-left:auto" id="zInf">50 Bar</span>
+
+<div id="pgCh" class="page active">
+  <div id="chartWrap">
+    <canvas id="cv"></canvas>
+    <div id="hint">Sentuh & geser di grafik untuk menggambar</div>
+    <div id="shInd" class="sheet">
+      <div class="s-title">Indikator Teknikal</div>
+      <div class="grid">
+        <button class="opt" data-ind="ema20"><span>EMA 20</span><b>OFF</b></button>
+        <button class="opt" data-ind="ema50"><span>EMA 50</span><b>OFF</b></button>
+        <button class="opt" data-ind="ma100"><span>MA 100</span><b>OFF</b></button>
+        <button class="opt" data-ind="bb"><span>Bollinger Bands</span><b>OFF</b></button>
+        <button class="opt" data-ind="rsi"><span>RSI 14</span><b>OFF</b></button>
+      </div>
+    </div>
+    <div id="shDrw" class="sheet">
+      <div class="s-title">Alat Gambar & Fibonacci</div>
+      <div class="grid">
+        <button class="opt" data-tool="trend"><span>Garis Trendline</span><b>↗</b></button>
+        <button class="opt" data-tool="hline"><span>Garis Horizontal</span><b>—</b></button>
+        <button class="opt" data-tool="fib"><span>Fibonacci Retrace</span><b>≡</b></button>
+        <button class="opt" data-tool="box"><span>Kotak Zona S/D</span><b>▭</b></button>
+        <button class="opt" id="clrDraw" style="grid-column:span 2;color:#f23645;justify-content:center">Hapus Semua Gambar</button>
+      </div>
+    </div>
+  </div>
+  <div id="toolStrip">
+    <div class="sym-picker" id="openWlBtn">
+      <b id="curSym">XAUUSD</b>
+      <select id="tf" onclick="event.stopPropagation()">
+        <option value="1">1m</option><option value="5">5m</option><option value="15" selected>15m</option>
+        <option value="60">1H</option><option value="240">4H</option><option value="1440">1D</option>
+      </select>
+    </div>
+    <button class="tbtn" id="bDrw" title="Gambar"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+    <button class="tbtn" id="bInd" title="Indikator"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></button>
+    <button class="tbtn" id="bCr" title="Crosshair"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></button>
+    <button class="tbtn" id="bUndo" title="Undo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+    <button class="tbtn on" id="bAu" title="Auto Skala"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+    <button class="tbtn" id="bHline" title="Garis Cepat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button>
+  </div>
 </div>
-<div id="bar">
-  <button id="bCr">Crosshair</button><button id="bEm" class="on">EMA 20</button>
-  <button id="bRs">RSI 14</button><button id="bLn">+ Garis</button>
-  <button id="bAu" class="on">Auto</button><button id="bRe">Reset</button>
+
+<div id="navBar">
+  <button class="nav" id="navWl"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Daftar Pantau</span></button>
+  <button class="nav active" id="navCh"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7 14l3-4 3 3 4-5"/></svg><span>Chart</span></button>
+  <button class="nav" id="navInd"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Indikator</span></button>
 </div>
-<div id="wrap"><canvas id="cv"></canvas></div>
 <script>
-const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),prc=document.getElementById('prc');
-let data=[],lines=[],emaOn=1,rsiOn=0,crOn=0,lnOn=0,crIdx=-1,tmr=null,vCnt=50,rOff=0,vSc=1,vPan=0;
-const fmt=v=>isNaN(v)?'0.00':v>=1000?v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):v<10?v.toFixed(4):v.toFixed(2);
-const setOhlc=c=>{if(!c)return;oV.innerText=fmt(c.o);hV.innerText=fmt(c.h);lV.innerText=fmt(c.l);cV.innerText=fmt(c.c)};
+const ITEMS=[
+  {s:'XAUUSD',d:'Emas / Dollar A.S.',c:'USD',bg:'#eab308',tx:'AU',p:3568.35,chg:-69.73,pct:-1.92,fx:0},
+  {s:'USDJPY',d:'Dollar A.S. / Yen Jepang',c:'JPY',bg:'#ef4444',tx:'JP',p:159.04,chg:0.043,pct:0.03,fx:1,b:'USD',q:'JPY'},
+  {s:'EURUSD',d:'Euro / Dollar A.S.',c:'USD',bg:'#2563eb',tx:'EU',p:1.0542,chg:0.0018,pct:0.17,fx:1,b:'EUR',q:'USD'},
+  {s:'USDIDR',d:'Dollar A.S. / Rupiah',c:'IDR',bg:'#dc2626',tx:'ID',p:15925,chg:35,pct:0.22,fx:1,b:'USD',q:'IDR'},
+  {s:'COMPOSITE',d:'Indeks Harga Saham Gabungan',c:'IDR',bg:'#b91c1c',tx:'IDX',p:7241.58,chg:24.15,pct:0.33,fx:0},
+  {s:'BBCA',d:'Bank Central Asia Tbk',c:'IDR',bg:'#1d4ed8',tx:'BCA',p:10150,chg:125,pct:1.25,fx:0},
+  {s:'BBRI',d:'Bank Rakyat Indonesia Tbk',c:'IDR',bg:'#0284c7',tx:'BRI',p:4380,chg:-40,pct:-0.90,fx:0},
+  {s:'BUMI',d:'PT Bumi Resources Tbk Class A',c:'IDR',bg:'#ea580c',tx:'BM',p:129,chg:1,pct:0.78,fx:0},
+  {s:'BUVA',d:'PT Bukit Uluwatu Villa Tbk',c:'IDR',bg:'#0f766e',tx:'BV',p:294,chg:4,pct:1.38,fx:0},
+  {s:'WBSA',d:'PT BSA Logistics Indonesia Tbk',c:'IDR',bg:'#dc2626',tx:'BSA',p:446,chg:0,pct:0.00,fx:0},
+  {s:'SUPA',d:'PT Super Bank Indonesia Tbk',c:'IDR',bg:'#16a34a',tx:'SP',p:342,chg:-4,pct:-1.16,fx:0},
+  {s:'BULL',d:'PT Buana Lintas Lautan Tbk',c:'IDR',bg:'#991b1b',tx:'BL',p:234,chg:-8,pct:-3.31,fx:0},
+  {s:'BTCUSD',d:'Bitcoin / Dollar A.S.',c:'USD',bg:'#f97316',tx:'B',p:96450,chg:1240,pct:1.30,fx:0},
+  {s:'ETHUSD',d:'Ethereum / Dollar A.S.',c:'USD',bg:'#6366f1',tx:'E',p:3385,chg:-42,pct:-1.22,fx:0},
+  {s:'SOLUSD',d:'Solana / Dollar A.S.',c:'USD',bg:'#8b5cf6',tx:'SOL',p:238.50,chg:6.80,pct:2.93,fx:0}
+];
+
+let activeItem=ITEMS.at(0),data=[],drawings=[],inds={ema20:false,ema50:false,ma100:false,bb:false,rsi:false};
+let crOn=false,activeTool=null,tempDraw=null,crIdx=-1,tmr=null,vCnt=55,rOff=-10,vSc=1,vPan=0;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+
+function fmtNum(v,cur){
+  if(cur==='IDR')return v.toLocaleString('id-ID',{minimumFractionDigits:v<1000?1:0,maximumFractionDigits:2});
+  if(v<10)return v.toFixed(4);
+  return v.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:3});
+}
+
+function renderWatchlist(q=''){
+  const list=document.getElementById('wlList');list.innerHTML='';
+  ITEMS.filter(x=>x.s.includes(q.toUpperCase())||x.d.toLowerCase().includes(q.toLowerCase())).forEach(it=>{
+    const cls=it.chg>0?'up':(it.chg<0?'dn':'nt'),sign=it.chg>0?'+':'';
+    const raw=fmtNum(it.p,it.c),mainP=raw.slice(0,-1),supP=raw.slice(-1);
+    const row=document.createElement('div');row.className='wl-item';
+    row.innerHTML='<div class="ico" style="background:'+it.bg+'">'+it.tx+'</div><div class="wl-mid"><div class="wl-sym">'+it.s+' <span class="dot"></span></div><div class="wl-desc">'+it.d+'</div></div><div class="wl-right"><div class="wl-prc">'+mainP+'<sup>'+supP+'</sup></div><div class="wl-chg '+cls+'">'+sign+fmtNum(it.chg,it.c)+' '+sign+it.pct.toFixed(2)+'%</div></div>';
+    row.onclick=()=>{activeItem=it;curSym.innerText=it.s;showPage('ch');initChart()};
+    list.appendChild(row);
+  });
+}
+
+function showPage(p){
+  pgWl.classList.toggle('active',p==='wl');pgCh.classList.toggle('active',p==='ch');
+  navWl.classList.toggle('active',p==='wl');navCh.classList.toggle('active',p==='ch');
+  if(p==='ch')setTimeout(draw,50);
+}
+
+function getCountdown(tfMin){
+  const now=new Date(),sec=now.getSeconds(),min=now.getMinutes(),hr=now.getHours();
+  if(tfMin>=1440){const rem=(23-hr)*60+(59-min);return String(Math.floor(rem/60)).padStart(2,'0')+':'+String(rem%60).padStart(2,'0')}
+  const totalSec=tfMin*60,passed=((hr*60+min)%tfMin)*60+sec,left=Math.max(1,totalSec-passed);
+  const mm=Math.floor(left/60),ss=left%60;
+  return String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+}
+
 function getEma(arr,p){let out=[],e=arr.at(0).c,k=2/(p+1);arr.forEach(d=>{e=d.c*k+e*(1-k);out.push(e)});return out}
-function getRsi(arr,p){return arr.map((_,i)=>{if(i<p)return 50;let u=0,d=0;for(let j=i-p+1;j<=i;j++){let df=arr.at(j).c-arr.at(j-1).c;df>=0?u+=df:d-=df}return 100-100/(1+(d===0?100:u/d))})}
+function getSma(arr,p){return arr.map((_,i)=>{let s=Math.max(0,i-p+1),sub=arr.slice(s,i+1);return sub.reduce((a,b)=>a+b.c,0)/sub.length})}
+function getBb(arr,p=20){const sma=getSma(arr,p);return arr.map((_,i)=>{let s=Math.max(0,i-p+1),sub=arr.slice(s,i+1),m=sma.at(i),sd=Math.sqrt(sub.reduce((a,b)=>a+(b.c-m)**2,0)/sub.length);return{m,u:m+2*sd,l:m-2*sd}})}
+function getRsi(arr,p=14){return arr.map((_,i)=>{if(i<p)return 50;let u=0,d=0;for(let j=i-p+1;j<=i;j++){let df=arr.at(j).c-arr.at(j-1).c;df>=0?u+=df:d-=df}return 100-100/(1+(d===0?100:u/d))})}
 function draw(){
   const dpr=window.devicePixelRatio||1,rc=cv.parentElement.getBoundingClientRect();
+  if(!rc.width||!rc.height)return;
   cv.width=rc.width*dpr;cv.height=rc.height*dpr;ctx.scale(dpr,dpr);
-  const w=rc.width,h=rc.height;ctx.fillStyle='#131722';ctx.fillRect(0,0,w,h);if(!data.length)return;
-  const rP=68,bP=18,tP=12,rH=rsiOn?Math.floor(h*0.22):0,cW=w-rP,cH=h-bP-tP-rH;
-  rOff=Math.min(Math.max(0,data.length-vCnt),Math.max(0,Math.round(rOff)));
-  const end=data.length-rOff,st=Math.max(0,end-vCnt),vw=data.slice(st,end);
-  zInf.innerText=vw.length+' Bar';
-  let mn=Infinity,mx=-Infinity;vw.forEach(c=>{if(c.l<mn)mn=c.l;if(c.h>mx)mx=c.h});
+  const w=rc.width,h=rc.height;ctx.fillStyle='#0b0e14';ctx.fillRect(0,0,w,h);if(!data.length)return;
+  const rP=72,bP=20,tP=24,rH=inds.rsi?Math.floor(h*0.22):0,cW=w-rP,cH=h-bP-tP-rH;
+  const minOff=-Math.floor(vCnt*0.75),maxOff=Math.max(0,data.length-5);
+  rOff=Math.min(maxOff,Math.max(minOff,Math.round(rOff)));
+  const end=data.length-rOff,st=end-vCnt;
+  let mn=Infinity,mx=-Infinity;
+  for(let i=Math.max(0,st);i<Math.min(data.length,end);i++){const c=data.at(i);if(c.l<mn)mn=c.l;if(c.h>mx)mx=c.h}
+  if(!isFinite(mn)){const l=data.at(-1);mn=l.l;mx=l.h}
   const mid=(mx+mn)/2,hf=((mx-mn)||1)/2,sHf=(hf*1.15)/vSc,cen=mid+vPan*hf,top=cen+sHf,bot=cen-sHf,rng=(top-bot)||1;
   const toY=p=>tP+((top-p)/rng)*cH,toP=y=>top-((y-tP)/cH)*rng;
-  ctx.strokeStyle='#1e222d';ctx.lineWidth=1;ctx.fillStyle='#787b86';ctx.font='10px sans-serif';
-  for(let i=0;i<=6;i++){const v=bot+(rng*i)/6,y=toY(v);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();ctx.fillText(fmt(v),cW+4,y+3)}
-  ctx.strokeStyle='#2a2e39';ctx.beginPath();ctx.moveTo(cW,0);ctx.lineTo(cW,h);ctx.stroke();
-  const sX=cW/vw.length,bW=Math.max(2,sX*0.64);
+  const sX=cW/vCnt,idxToX=idx=>(idx-st)*sX+sX/2,xToIdx=x=>Math.round(st+(x-sX/2)/sX);
+  ctx.strokeStyle='#151922';ctx.lineWidth=1;ctx.fillStyle='#787b86';ctx.font='10px sans-serif';
+  for(let i=0;i<=6;i++){const v=bot+(rng*i)/6,y=toY(v);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();ctx.fillText(fmtNum(v,activeItem.c),cW+6,y+3)}
+  for(let i=Math.max(0,st);i<Math.min(data.length,end);i+=12){const x=idxToX(i);ctx.beginPath();ctx.moveTo(x,tP);ctx.lineTo(x,h-bP);ctx.stroke()}
+  ctx.strokeStyle='#1e222d';ctx.beginPath();ctx.moveTo(cW,0);ctx.lineTo(cW,h);ctx.moveTo(0,h-bP);ctx.lineTo(w,h-bP);ctx.stroke();
+  ctx.fillStyle='#868993';ctx.font='bold 10px sans-serif';ctx.fillText(activeItem.c+' v',cW+12,15);
   ctx.save();ctx.beginPath();ctx.rect(0,tP,cW,cH);ctx.clip();
-  lines.forEach(l=>{const y=toY(l);ctx.strokeStyle='#f59e0b';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke()});
-  vw.forEach((c,i)=>{const x=i*sX+sX/2,up=c.c>=c.o,col=up?'#089981':'#f23645';ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,toY(c.h));ctx.lineTo(x,toY(c.l));ctx.stroke();const yO=toY(c.o),yC=toY(c.c);ctx.fillRect(x-bW/2,Math.min(yO,yC),bW,Math.max(2,Math.abs(yC-yO)))});
-  if(emaOn){const em=getEma(data,20).slice(st,end);ctx.strokeStyle='#2962ff';ctx.lineWidth=1.5;ctx.beginPath();em.forEach((v,i)=>{const x=i*sX+sX/2,y=toY(v);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()}
+  const bW=Math.max(2,sX*0.64);
+  for(let i=Math.max(0,st);i<Math.min(data.length,end);i++){
+    const c=data.at(i),x=idxToX(i),up=c.c>=c.o,col=up?'#089981':'#f23645';
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=1.1;
+    ctx.beginPath();ctx.moveTo(x,toY(c.h));ctx.lineTo(x,toY(c.l));ctx.stroke();
+    const yO=toY(c.o),yC=toY(c.c);ctx.fillRect(x-bW/2,Math.min(yO,yC),bW,Math.max(2,Math.abs(yC-yO)));
+  }
+  const plotLine=(arr,col)=>{ctx.strokeStyle=col;ctx.lineWidth=1.4;ctx.beginPath();let s=false;for(let i=Math.max(0,st);i<Math.min(data.length,end);i++){const x=idxToX(i),y=toY(arr.at(i));if(!s){ctx.moveTo(x,y);s=true}else ctx.lineTo(x,y)}ctx.stroke()};
+  if(inds.ema20)plotLine(getEma(data,20),'#2962ff');
+  if(inds.ema50)plotLine(getEma(data,50),'#f59e0b');
+  if(inds.ma100)plotLine(getSma(data,100),'#ec4899');
+  if(inds.bb){const bb=getBb(data,20);plotLine(bb.map(b=>b.u),'rgba(41,98,255,.55)');plotLine(bb.map(b=>b.l),'rgba(41,98,255,.55)')}
+  const allDrw=tempDraw?[...drawings,tempDraw]:drawings;
+  allDrw.forEach(d=>{
+    const x1=idxToX(d.i1),y1=toY(d.p1),x2=idxToX(d.i2),y2=toY(d.p2);
+    if(d.type==='hline'){ctx.strokeStyle='#f59e0b';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(0,y1);ctx.lineTo(cW,y1);ctx.stroke()}
+    else if(d.type==='trend'){ctx.strokeStyle='#38bdf8';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(x1,y1,3,0,7);ctx.arc(x2,y2,3,0,7);ctx.fill()}
+    else if(d.type==='box'){ctx.fillStyle='rgba(41,98,255,.18)';ctx.strokeStyle='#2962ff';ctx.lineWidth=1.2;ctx.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));ctx.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1))}
+    else if(d.type==='fib'){
+      const lvls=[0,0.236,0.382,0.5,0.618,0.786,1],cols=['#787b86','#f23645','#f59e0b','#089981','#2962ff','#a855f7','#787b86'];
+      lvls.forEach((lv,idx)=>{const pr=d.p1+(d.p2-d.p1)*lv,yy=toY(pr);ctx.strokeStyle=cols.at(idx);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(Math.min(x1,x2),yy);ctx.lineTo(Math.max(x1,x2)+40,yy);ctx.stroke();ctx.fillStyle=cols.at(idx);ctx.fillText((lv*100).toFixed(1)+'% ('+fmtNum(pr,activeItem.c)+')',Math.min(x1,x2)+4,yy-2)});
+    }
+  });
   const lst=data.at(-1),lY=toY(lst.c),lC=lst.c>=lst.o?'#089981':'#f23645';
-  ctx.strokeStyle=lC;ctx.beginPath();ctx.moveTo(0,lY);ctx.lineTo(cW,lY);ctx.stroke();ctx.restore();
-  lines.forEach(l=>{const y=toY(l);if(y>=tP&&y<=tP+cH){ctx.fillStyle='#f59e0b';ctx.fillRect(cW+1,y-8,rP-2,16);ctx.fillStyle='#131722';ctx.fillText(fmt(l),cW+4,y+3)}});
-  if(lY>=tP&&lY<=tP+cH){ctx.fillStyle=lC;ctx.fillRect(cW+1,lY-9,rP-2,18);ctx.fillStyle='#fff';ctx.fillText(fmt(lst.c),cW+4,lY+3)}
-  if(rsiOn){const rT=tP+cH+6,rB=rH-8,rs=getRsi(data,14).slice(st,end);ctx.strokeStyle='#2a2e39';ctx.beginPath();ctx.moveTo(0,rT);ctx.lineTo(cW,rT);ctx.stroke();ctx.strokeStyle='#a855f7';ctx.beginPath();rs.forEach((v,i)=>{const x=i*sX+sX/2,y=rT+((100-v)/100)*rB;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#a855f7';ctx.fillText('RSI '+Math.round(rs.at(-1)),cW+4,rT+rB/2)}
-  if(crOn&&crIdx>=0&&crIdx<vw.length){const cc=vw.at(crIdx),cx=crIdx*sX+sX/2,cy=toY(cc.c);ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,h-bP);ctx.moveTo(0,cy);ctx.lineTo(cW,cy);ctx.stroke();setOhlc(cc)}
-  cv._cW=cW;cv._toP=toP;cv._sX=sX;
+  ctx.strokeStyle=lC;ctx.lineWidth=1;ctx.setLineDash();ctx.beginPath();ctx.moveTo(0,lY);ctx.lineTo(cW,lY);ctx.stroke();ctx.setLineDash([]);
+  ctx.restore();
+  if(lY>=tP&&lY<=tP+cH){
+    ctx.fillStyle=lC;ctx.fillRect(cW+2,lY-14,rP-4,28);
+    ctx.fillStyle='#ffffff';ctx.font='bold 10px sans-serif';ctx.fillText(fmtNum(lst.c,activeItem.c),cW+6,lY-2);
+    ctx.font='9px sans-serif';ctx.fillText(getCountdown(Number(tf.value)),cW+6,lY+10);
+  }
+  if(inds.rsi){
+    const rT=tP+cH+6,rB=rH-8,rs=getRsi(data,14);
+    ctx.strokeStyle='#1e222d';ctx.beginPath();ctx.moveTo(0,rT);ctx.lineTo(cW,rT);ctx.stroke();
+    ctx.strokeStyle='#a855f7';ctx.lineWidth=1.3;ctx.beginPath();let sR=false;
+    for(let i=Math.max(0,st);i<Math.min(data.length,end);i++){const x=idxToX(i),y=rT+((100-rs.at(i))/100)*rB;if(!sR){ctx.moveTo(x,y);sR=true}else ctx.lineTo(x,y)}
+    ctx.stroke();ctx.fillStyle='#a855f7';ctx.fillText('RSI '+Math.round(rs.at(-1)),cW+6,rT+rB/2);
+  }
+  if(crOn&&crIdx>=0&&crIdx<data.length){
+    const cc=data.at(crIdx),cx=idxToX(crIdx),cy=toY(cc.c);
+    ctx.strokeStyle='rgba(255,255,255,.45)';ctx.beginPath();ctx.moveTo(cx,tP);ctx.lineTo(cx,h-bP);ctx.moveTo(0,cy);ctx.lineTo(cW,cy);ctx.stroke();
+    ctx.fillStyle='rgba(22,26,35,.9)';ctx.fillRect(8,8,210,18);ctx.fillStyle='#d1d4dc';ctx.font='10px sans-serif';
+    ctx.fillText('O:'+fmtNum(cc.o,activeItem.c)+' H:'+fmtNum(cc.h,activeItem.c)+' L:'+fmtNum(cc.l,activeItem.c)+' C:'+fmtNum(cc.c,activeItem.c),12,20);
+  }
+  cv._cW=cW;cv._toP=toP;cv._xToIdx=xToIdx;
 }
-async function load(){
-  const p=sym.value.split(':'),fb=parseFloat(p.at(3))||100,m=parseInt(tf.value,10)||15;
-  if(tmr)clearInterval(tmr);lines=[];crIdx=-1;rOff=0;vSc=1;vPan=0;bAu.classList.add('on');
-  let anc=fb;
-  try{if(p.at(0)==='FX'){const r=await fetch(`https://frankfurter.app{p.at(1)}&to=${p.at(2)}`),j=await r.json();if(j?.rates?.[p.at(2)])anc=parseFloat(j.rates[p.at(2)])||fb}}catch(e){}
-  const vol=anc*(0.0005*Math.sqrt(Math.min(m,240)));let cur=anc*(1-0.006*Math.cos(m)),bi=0;data=[];
+async function initChart(){
+  if(tmr)clearInterval(tmr);drawings=[];tempDraw=null;crIdx=-1;rOff=-10;vSc=1;vPan=0;bAu.classList.add('on');
+  let anc=activeItem.p;
+  try{if(activeItem.fx){const r=await fetch('https://frankfurter.app),j=await r.json();if(j&&j.rates&&j.rates[activeItem.q])anc=parseFloat(j.rates[activeItem.q])||anc}}catch(e){}
+  const m=parseInt(tf.value,10)||15,vol=anc*(0.0005*Math.sqrt(Math.min(m,240)));let cur=anc*(1-0.006*Math.cos(m)),bi=0;data=[];
   for(let i=0;i<240;i++){if(i%14===0)bi=(Math.random()-0.48)*vol*0.85;const mv=bi+((anc-cur)/(240-i))*0.25+(Math.random()-0.5)*vol*1.4,o=cur,c=i===239?anc:o+mv,bd=Math.abs(c-o);data.push({o,h:Math.max(o,c)+bd*(0.2+Math.random()*0.5)+vol*0.12,l:Math.min(o,c)-bd*(0.2+Math.random()*0.5)-vol*0.12,c});cur=c}
-  const tick=()=>{const l=data.at(-1);prc.innerText=fmt(l.c);prc.style.color=l.c>=l.o?'#089981':'#f23645';if(!crOn||crIdx<0)setOhlc(l);draw()};
-  tick();tmr=setInterval(()=>{const l=data.at(-1);l.c+=(Math.random()-0.495)*l.c*0.00035;if(l.c>l.h)l.h=l.c;if(l.c<l.l)l.l=l.c;tick()},1500);
+  draw();
+  tmr=setInterval(()=>{const l=data.at(-1);l.c+=(Math.random()-0.495)*l.c*0.0003;if(l.c>l.h)l.h=l.c;if(l.c<l.l)l.l=l.c;draw()},1000);
 }
-let drg=0,md='p',sX=0,sY=0,sO=0,sV=1,sP=0,pD=0,pC=50;
-cv.addEventListener('touchstart',e=>{const rc=cv.getBoundingClientRect();if(e.touches.length===2){drg=0;pD=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);pC=vCnt;return}const t=e.touches.item(0),x=t.clientX-rc.left,y=t.clientY-rc.top;if(lnOn&&cv._toP){lines.push(cv._toP(y));lnOn=0;bLn.classList.remove('on');draw();return}if(crOn&&cv._sX){crIdx=Math.max(0,Math.floor(x/cv._sX));draw();return}drg=1;sX=x;sY=y;sO=rOff;sV=vSc;sP=vPan;md=(cv._cW&&x>cv._cW)?'v':'p'},{passive:false});
-cv.addEventListener('touchmove',e=>{e.preventDefault();const rc=cv.getBoundingClientRect();if(e.touches.length===2&&pD>0){const d=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);vCnt=Math.min(200,Math.max(12,Math.round(pC*(pD/Math.max(10,d)))));draw();return}const t=e.touches.item(0),x=t.clientX-rc.left,y=t.clientY-rc.top;if(crOn&&cv._sX){crIdx=Math.max(0,Math.floor(x/cv._sX));draw();return}if(!drg)return;if(md==='v'){vSc=Math.min(4.5,Math.max(0.25,sV*Math.exp(-(y-sY)*0.008)));bAu.classList.remove('on');draw()}else{rOff=sO+((x-sX)/((cv._cW||300)/vCnt));if(!bAu.classList.contains('on'))vPan=sP+((y-sY)/140)/vSc;draw()}},{passive:false});
-cv.addEventListener('touchend',()=>{drg=0;pD=0});
-bCr.onclick=()=>{crOn=!crOn;bCr.classList.toggle('on',crOn);if(!crOn)crIdx=-1;draw()};
-bEm.onclick=()=>{emaOn=!emaOn;bEm.classList.toggle('on',emaOn);draw()};
-bRs.onclick=()=>{rsiOn=!rsiOn;bRs.classList.toggle('on',rsiOn);draw()};
-bLn.onclick=()=>{lnOn=!lnOn;bLn.classList.toggle('on',lnOn)};
-bAu.onclick=()=>{vSc=1;vPan=0;rOff=0;bAu.classList.add('on');draw()};
-bRe.onclick=()=>{lines=[];crIdx=-1;vSc=1;vPan=0;vCnt=50;rOff=0;bAu.classList.add('on');draw()};
-window.onresize=draw;sym.onchange=load;tf.onchange=load;load();
+let drg=0,md='p',sX=0,sY=0,sO=0,sV=1,sP=0,pD=0,pC=55;
+cv.addEventListener('touchstart',e=>{shInd.classList.remove('show');shDrw.classList.remove('show');const rc=cv.getBoundingClientRect();if(e.touches.length===2){drg=0;pD=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);pC=vCnt;return}const t=e.touches.item(0),x=t.clientX-rc.left,y=t.clientY-rc.top;if(activeTool&&cv._toP&&cv._xToIdx){const i=cv._xToIdx(x),pr=cv._toP(y);if(activeTool==='hline'){drawings.push({type:'hline',i1:i,p1:pr,i2:i,p2:pr});activeTool=null;hint.style.display='none';bDrw.classList.remove('on');bHline.classList.remove('on');draw();return}tempDraw={type:activeTool,i1:i,p1:pr,i2:i,p2:pr};draw();return}if(crOn&&cv._xToIdx){crIdx=Math.min(data.length-1,Math.max(0,cv._xToIdx(x)));draw();return}drg=1;sX=x;sY=y;sO=rOff;sV=vSc;sP=vPan;md=(cv._cW&&x>cv._cW)?'v':'p'},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();const rc=cv.getBoundingClientRect();if(e.touches.length===2&&pD>0){const d=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);vCnt=Math.min(200,Math.max(12,Math.round(pC*(pD/Math.max(10,d)))));draw();return}const t=e.touches.item(0),x=t.clientX-rc.left,y=t.clientY-rc.top;if(tempDraw&&cv._toP&&cv._xToIdx){tempDraw.i2=cv._xToIdx(x);tempDraw.p2=cv._toP(y);draw();return}if(crOn&&cv._xToIdx){crIdx=Math.min(data.length-1,Math.max(0,cv._xToIdx(x)));draw();return}if(!drg)return;if(md==='v'){vSc=Math.min(4.5,Math.max(0.25,sV*Math.exp(-(y-sY)*0.008)));bAu.classList.remove('on');draw()}else{rOff=sO+((x-sX)/((cv._cW||300)/vCnt));if(!bAu.classList.contains('on'))vPan=sP+((y-sY)/140)/vSc;draw()}},{passive:false});
+cv.addEventListener('touchend',()=>{if(tempDraw){drawings.push(tempDraw);tempDraw=null;activeTool=null;hint.style.display='none';bDrw.classList.remove('on');draw()}drg=0;pD=0});
+navWl.onclick=()=>showPage('wl');navCh.onclick=()=>showPage('ch');navInd.onclick=()=>{showPage('ch');shDrw.classList.remove('show');shInd.classList.toggle('show')};openWlBtn.onclick=()=>showPage('wl');wlSearch.oninput=e=>renderWatchlist(e.target.value);
+bDrw.onclick=()=>{shInd.classList.remove('show');shDrw.classList.toggle('show')};bInd.onclick=()=>{shDrw.classList.remove('show');shInd.classList.toggle('show')};bCr.onclick=()=>{crOn=!crOn;bCr.classList.toggle('on',crOn);if(!crOn)crIdx=-1;draw()};bUndo.onclick=()=>{drawings.pop();draw()};bAu.onclick=()=>{vSc=1;vPan=0;rOff=-10;bAu.classList.add('on');draw()};
+bHline.onclick=()=>{activeTool='hline';bHline.classList.add('on');hint.style.display='block';hint.innerText='Sentuh harga di chart untuk memasang garis'};
+document.querySelectorAll('[data-ind]').forEach(b=>b.onclick=()=>{const k=b.dataset.ind;inds[k]=!inds[k];b.classList.toggle('on',inds[k]);b.querySelector('b').innerText=inds[k]?'ON':'OFF';draw()});
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{activeTool=b.dataset.tool;shDrw.classList.remove('show');bDrw.classList.add('on');hint.style.display='block';hint.innerText=activeTool==='hline'?'Sentuh harga untuk Garis Horizontal':'Sentuh & tarik di grafik untuk menggambar'});
+clrDraw.onclick=()=>{drawings=[];shDrw.classList.remove('show');draw()};window.addEventListener('resize',()=>setTimeout(draw,80));tf.onchange=initChart;renderWatchlist();initChart();
 </script>
-</body>
-</html>
