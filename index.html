@@ -2,16 +2,43 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SABER MARKETS</title>
   <style>
-    body { margin: 0; background: #131722; color: #ffffff; font-family: sans-serif; }
-    #status { padding: 20px; text-align: center; font-size: 16px; }
-    iframe { width: 100vw; height: 100vh; border: none; display: block; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100vw; height: 100vh; background-color: #131722; overflow: hidden; }
+    #tv_chart { width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
-  <div id="status">Memuat Chart SABER MARKETS...</div>
-  <iframe id="tv_frame" src="https://tradingview-widget.com" onload="document.getElementById('status').style.display='none';"></iframe>
+  <div id="tv_chart"></div>
+  <script type="text/javascript" src="https://tradingview.com"></script>
+  <script type="text/javascript">
+    new TradingView.widget({
+      "autosize": true,
+      "symbol": "BINANCE:BTCUSDT",
+      "interval": "15",
+      "timezone": "Asia/Makassar",
+      "theme": "dark",
+      "style": "1",
+      "locale": "id",
+      "enable_publishing": false,
+      "withdateranges": true,
+      "hide_side_toolbar": false,
+      "allow_symbol_change": true,
+      "watchlist": [
+        "BINANCE:BTCUSDT",
+        "FX:XAUUSD",
+        "FX:EURUSD",
+        "IDX:COMPOSITE",
+        "IDX:BBCA",
+        "NASDAQ:AAPL"
+      ],
+      "details": true,
+      "hotlist": true,
+      "calendar": true,
+      "container_id": "tv_chart"
+    });
+  </script>
 </body>
 </html>
