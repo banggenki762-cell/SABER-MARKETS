@@ -1,258 +1,124 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SABER MARKETS</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { background: #131722; color: #d1d4dc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    #topbar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #1e222d; border-bottom: 1px solid #2a2e39; flex-wrap: wrap; }
-    .brand { font-weight: 800; color: #2962ff; font-size: 13px; letter-spacing: 0.5px; margin-right: 4px; }
-    select { background: #2a2e39; color: #ffffff; border: 1px solid #363a45; padding: 6px 8px; border-radius: 5px; font-size: 12px; max-width: 155px; outline: none; }
-    #price { margin-left: auto; font-weight: bold; font-size: 14px; color: #089981; }
-    #badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #2a2e39; color: #868993; }
-    #wrap { flex: 1; position: relative; width: 100%; height: 100%; }
-    canvas { display: block; width: 100%; height: 100%; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SABER MARKETS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;user-select:none;-webkit-user-select:none}
+body{background:#131722;color:#d1d4dc;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#top{display:flex;align-items:center;gap:5px;padding:7px 9px;background:#1e222d;border-bottom:1px solid #2a2e39}
+.brand{font-weight:800;color:#2962ff;font-size:12px;white-space:nowrap}
+select,button{background:#2a2e39;color:#fff;border:1px solid #363a45;padding:5px 7px;border-radius:4px;font-size:11px;outline:none}
+#sym{max-width:135px}
+button.on{background:#2962ff;border-color:#2962ff}
+#prc{margin-left:auto;font-weight:700;font-size:13px;color:#089981}
+#ohlc{display:flex;gap:7px;padding:4px 9px;background:#131722;font-size:10px;color:#868993;border-bottom:1px solid #1e222d}
+#ohlc b{color:#d1d4dc;font-weight:500}
+#bar{display:flex;gap:4px;padding:5px 9px;background:#181c27;border-bottom:1px solid #2a2e39;overflow-x:auto}
+#wrap{flex:1;position:relative;width:100%;height:100%;touch-action:none}
+canvas{display:block;width:100%;height:100%}
+</style>
 </head>
 <body>
-  <div id="topbar">
-    <span class="brand">SABER MARKETS</span>
-    <select id="symbol">
-      <optgroup label="FOREX">
-        <option value="FX|EUR|USD|1.0520">EUR/USD</option>
-        <option value="FX|GBP|USD|1.2640">GBP/USD</option>
-        <option value="FX|USD|JPY|154.20">USD/JPY</option>
-        <option value="FX|AUD|USD|0.6510">AUD/USD</option>
-        <option value="FX|USD|IDR|15920">USD/IDR</option>
-      </optgroup>
-      <optgroup label="EMAS & KOMODITAS">
-        <option value="CMD|XAUUSD|2635.50">GOLD (XAU/USD)</option>
-        <option value="CMD|XAGUSD|31.25">SILVER (XAG/USD)</option>
-        <option value="CMD|WTI|69.40">CRUDE OIL (WTI)</option>
-      </optgroup>
-      <optgroup label="KRIPTO">
-        <option value="CRY|BTCUSD|96500">BTC/USD</option>
-        <option value="CRY|ETHUSD|3380">ETH/USD</option>
-        <option value="CRY|SOLUSD|238.50">SOL/USD</option>
-        <option value="CRY|XRPUSD|1.4250">XRP/USD</option>
-      </optgroup>
-      <optgroup label="INDEKS & SAHAM">
-        <option value="STK|IHSG|7245">IHSG (IDX)</option>
-        <option value="STK|BBCA|10150">BBCA (Bank BCA)</option>
-        <option value="STK|NVDA|142.50">NVIDIA (NVDA)</option>
-        <option value="STK|SPX|5965">S&P 500</option>
-      </optgroup>
-    </select>
-    <select id="interval">
-      <option value="1">1m</option>
-      <option value="5">5m</option>
-      <option value="15" selected>15m</option>
-      <option value="60">1H</option>
-      <option value="240">4H</option>
-      <option value="1440">1D</option>
-    </select>
-    <span id="badge">LIVE</span>
-    <span id="price">--</span>
-  </div>
-  <div id="wrap">
-    <canvas id="canvas"></canvas>
-  </div>
-
-  <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const priceEl = document.getElementById('price');
-    const badgeEl = document.getElementById('badge');
-    let candles = [];
-    let timer = null;
-
-    function drawChart() {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-
-      const w = rect.width;
-      const h = rect.height;
-      ctx.fillStyle = '#131722';
-      ctx.fillRect(0, 0, w, h);
-
-      if (!candles.length) return;
-
-      const rightPad = 72;
-      const bottomPad = 24;
-      const topPad = 16;
-      const chartW = w - rightPad;
-      const chartH = h - bottomPad - topPad;
-
-      let minP = Infinity, maxP = -Infinity;
-      for (const c of candles) {
-        if (c.low < minP) minP = c.low;
-        if (c.high > maxP) maxP = c.high;
-      }
-      const rangeP = (maxP - minP) || 1;
-      minP -= rangeP * 0.06;
-      maxP += rangeP * 0.06;
-      const totalRange = maxP - minP;
-
-      const priceToY = (p) => topPad + ((maxP - p) / totalRange) * chartH;
-      const fmtPrice = (v) => v >= 1000 ? v.toLocaleString('en-US', {maximumFractionDigits: 2}) : (v < 10 ? v.toFixed(4) : v.toFixed(2));
-
-      // Grid & Price Scale
-      ctx.strokeStyle = '#1e222d';
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#787b86';
-      ctx.font = '10px sans-serif';
-      for (let i = 0; i <= 6; i++) {
-        const val = minP + (totalRange * i) / 6;
-        const y = priceToY(val);
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(chartW, y);
-        ctx.stroke();
-        ctx.fillText(fmtPrice(val), chartW + 5, y + 4);
-      }
-
-      // Vertical Separator
-      ctx.strokeStyle = '#2a2e39';
-      ctx.beginPath();
-      ctx.moveTo(chartW, 0);
-      ctx.lineTo(chartW, h);
-      ctx.stroke();
-
-      // EMA 20 Line
-      ctx.strokeStyle = '#2962ff';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      let ema = candles.at(0).close;
-      const k = 2 / 21;
-      candles.forEach((c, idx) => {
-        ema = c.close * k + ema * (1 - k);
-        const x = idx * (chartW / candles.length) + (chartW / candles.length) / 2;
-        const y = priceToY(ema);
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      // Candlesticks
-      const count = candles.length;
-      const stepX = chartW / count;
-      const bodyW = Math.max(2.5, stepX * 0.65);
-
-      candles.forEach((c, idx) => {
-        const x = idx * stepX + stepX / 2;
-        const isUp = c.close >= c.open;
-        const color = isUp ? '#089981' : '#f23645';
-
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-        ctx.moveTo(x, priceToY(c.high));
-        ctx.lineTo(x, priceToY(c.low));
-        ctx.stroke();
-
-        const yOpen = priceToY(c.open);
-        const yClose = priceToY(c.close);
-        ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(2, Math.abs(yClose - yOpen)));
-      });
-
-      // Current Price Line
-      const last = candles.at(-1);
-      const lastY = priceToY(last.close);
-      const lastColor = last.close >= last.open ? '#089981' : '#f23645';
-      ctx.strokeStyle = lastColor;
-      ctx.beginPath();
-      ctx.moveTo(0, lastY);
-      ctx.lineTo(chartW, lastY);
-      ctx.stroke();
-
-      ctx.fillStyle = lastColor;
-      ctx.fillRect(chartW + 1, lastY - 9, rightPad - 2, 18);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(fmtPrice(last.close), chartW + 4, lastY + 4);
-    }
-
-    function buildSeries(anchorPrice, tfMinutes) {
-      const vol = anchorPrice * (0.0008 * Math.sqrt(tfMinutes));
-      const list = [];
-      let p = anchorPrice * (1 - (Math.sin(tfMinutes) * 0.008));
-      for (let i = 0; i < 65; i++) {
-        const drift = (anchorPrice - p) / (65 - i);
-        const wave = Math.sin(i * 0.6 + tfMinutes) * vol + Math.cos(i * 1.3) * vol * 0.7;
-        const close = i === 64 ? anchorPrice : p + drift + wave;
-        const high = Math.max(p, close) + Math.abs(Math.sin(i + 2)) * vol * 0.8;
-        const low = Math.min(p, close) - Math.abs(Math.cos(i + 1)) * vol * 0.8;
-        list.push({ open: p, high, low, close });
-        p = close;
-      }
-      return list;
-    }
-
-    async function loadData() {
-      const parts = document.getElementById('symbol').value.split('|');
-      const src = parts.at(0);
-      const p1 = parts.at(1);
-      const p2 = parts.at(2);
-      const baseAnchor = Number(parts.at(3));
-      const tf = Number(document.getElementById('interval').value);
-
-      if (timer) clearInterval(timer);
-
-      let livePrice = baseAnchor;
-      let isReal = false;
-
-      try {
-        if (src === 'FX') {
-          const res = await fetch(`https://frankfurter.app{p1}&to=${p2}`);
-          const json = await res.json();
-          if (json && json.rates && json.rates[p2]) {
-            livePrice = json.rates[p2];
-            isReal = true;
-          }
-        } else {
-          const res = await fetch(`https://er-api.com`);
-          const json = await res.json();
-          if (json && json.rates && json.rates.IDR) {
-            isReal = true;
-          }
-        }
-      } catch (e) {
-        isReal = false;
-      }
-
-      badgeEl.innerText = isReal ? 'REAL FEED' : 'MARKET FEED';
-      badgeEl.style.color = isReal ? '#089981' : '#f59e0b';
-      candles = buildSeries(livePrice, tf);
-
-      function updateUI() {
-        const last = candles.at(-1);
-        priceEl.innerText = last.close >= 1000 ? last.close.toLocaleString('en-US', {maximumFractionDigits: 2}) : (last.close < 10 ? last.close.toFixed(4) : last.close.toFixed(2));
-        priceEl.style.color = last.close >= last.open ? '#089981' : '#f23645';
-        drawChart();
-      }
-
-      updateUI();
-
-      timer = setInterval(() => {
-        const last = candles.at(-1);
-        const tick = (Math.random() - 0.49) * last.close * 0.0005;
-        last.close += tick;
-        if (last.close > last.high) last.high = last.close;
-        if (last.close < last.low) last.low = last.close;
-        updateUI();
-      }, 1500);
-    }
-
-    window.addEventListener('resize', drawChart);
-    document.getElementById('symbol').addEventListener('change', loadData);
-    document.getElementById('interval').addEventListener('change', loadData);
-    loadData();
-  </script>
-</body>
-</html>
+<div id="top">
+  <span class="brand">SABER MARKETS</span>
+  <select id="sym">
+    <optgroup label="FOREX">
+      <option value="FX:EUR:USD:1.0520">EUR/USD</option>
+      <option value="FX:GBP:USD:1.2640">GBP/USD</option>
+      <option value="FX:USD:JPY:154.20">USD/JPY</option>
+      <option value="FX:AUD:USD:0.6510">AUD/USD</option>
+      <option value="FX:USD:IDR:15920">USD/IDR</option>
+    </optgroup>
+    <optgroup label="EMAS & KOMODITAS">
+      <option value="CM:XAU:USD:2635.50">GOLD (XAU/USD)</option>
+      <option value="CM:XAG:USD:31.25">SILVER (XAG/USD)</option>
+      <option value="CM:WTI:USD:69.40">CRUDE OIL (WTI)</option>
+    </optgroup>
+    <optgroup label="KRIPTO">
+      <option value="CR:BTC:USD:96500">BTC/USD</option>
+      <option value="CR:ETH:USD:3380">ETH/USD</option>
+      <option value="CR:SOL:USD:238.50">SOL/USD</option>
+      <option value="CR:XRP:USD:1.4250">XRP/USD</option>
+      <option value="CR:BNB:USD:645.00">BNB/USD</option>
+    </optgroup>
+    <optgroup label="SAHAM & INDEKS">
+      <option value="ST:IHSG:IDR:7245">IHSG (IDX)</option>
+      <option value="ST:BBCA:IDR:10150">BBCA (BCA)</option>
+      <option value="ST:BBRI:IDR:4380">BBRI (BRI)</option>
+      <option value="ST:NVDA:USD:142.50">NVIDIA (NVDA)</option>
+      <option value="ST:SPX:USD:5965">S&P 500</option>
+    </optgroup>
+  </select>
+  <select id="tf">
+    <option value="1">1m</option><option value="5">5m</option><option value="15" selected>15m</option>
+    <option value="60">1H</option><option value="240">4H</option><option value="1440">1D</option>
+  </select>
+  <span id="prc">0.00</span>
+</div>
+<div id="ohlc">
+  <span>O:<b id="oV">-</b></span><span>H:<b id="hV">-</b></span><span>L:<b id="lV">-</b></span><span>C:<b id="cV">-</b></span>
+  <span style="margin-left:auto" id="zInf">50 Bar</span>
+</div>
+<div id="bar">
+  <button id="bCr">Crosshair</button><button id="bEm" class="on">EMA 20</button>
+  <button id="bRs">RSI 14</button><button id="bLn">+ Garis</button>
+  <button id="bAu" class="on">Auto</button><button id="bRe">Reset</button>
+</div>
+<div id="wrap"><canvas id="cv"></canvas></div>
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),prc=document.getElementById('prc');
+let data=[],lines=[],emaOn=1,rsiOn=0,crOn=0,lnOn=0,crIdx=-1,tmr=null,vCnt=50,rOff=0,vSc=1,vPan=0;
+const fmt=v=>isNaN(v)?'0.00':v>=1000?v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):v<10?v.toFixed(4):v.toFixed(2);
+const setOhlc=c=>{if(!c)return;oV.innerText=fmt(c.o);hV.innerText=fmt(c.h);lV.innerText=fmt(c.l);cV.innerText=fmt(c.c)};
+function getEma(arr,p){let out=[],e=arr.at(0).c,k=2/(p+1);arr.forEach(d=>{e=d.c*k+e*(1-k);out.push(e)});return out}
+function getRsi(arr,p){return arr.map((_,i)=>{if(i<p)return 50;let u=0,d=0;for(let j=i-p+1;j<=i;j++){let df=arr.at(j).c-arr.at(j-1).c;df>=0?u+=df:d-=df}return 100-100/(1+(d===0?100:u/d))})}
+function draw(){
+  const dpr=window.devicePixelRatio||1,rc=cv.parentElement.getBoundingClientRect();
+  cv.width=rc.width*dpr;cv.height=rc.height*dpr;ctx.scale(dpr,dpr);
+  const w=rc.width,h=rc.height;ctx.fillStyle='#131722';ctx.fillRect(0,0,w,h);if(!data.length)return;
+  const rP=68,bP=18,tP=12,rH=rsiOn?Math.floor(h*0.22):0,cW=w-rP,cH=h-bP-tP-rH;
+  rOff=Math.min(Math.max(0,data.length-vCnt),Math.max(0,Math.round(rOff)));
+  const end=data.length-rOff,st=Math.max(0,end-vCnt),vw=data.slice(st,end);
+  zInf.innerText=vw.length+' Bar';
+  let mn=Infinity,mx=-Infinity;vw.forEach(c=>{if(c.l<mn)mn=c.l;if(c.h>mx)mx=c.h});
+  const mid=(mx+mn)/2,hf=((mx-mn)||1)/2,sHf=(hf*1.15)/vSc,cen=mid+vPan*hf,top=cen+sHf,bot=cen-sHf,rng=(top-bot)||1;
+  const toY=p=>tP+((top-p)/rng)*cH,toP=y=>top-((y-tP)/cH)*rng;
+  ctx.strokeStyle='#1e222d';ctx.lineWidth=1;ctx.fillStyle='#787b86';ctx.font='10px sans-serif';
+  for(let i=0;i<=6;i++){const v=bot+(rng*i)/6,y=toY(v);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();ctx.fillText(fmt(v),cW+4,y+3)}
+  ctx.strokeStyle='#2a2e39';ctx.beginPath();ctx.moveTo(cW,0);ctx.lineTo(cW,h);ctx.stroke();
+  const sX=cW/vw.length,bW=Math.max(2,sX*0.64);
+  ctx.save();ctx.beginPath();ctx.rect(0,tP,cW,cH);ctx.clip();
+  lines.forEach(l=>{const y=toY(l);ctx.strokeStyle='#f59e0b';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke()});
+  vw.forEach((c,i)=>{const x=i*sX+sX/2,up=c.c>=c.o,col=up?'#089981':'#f23645';ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,toY(c.h));ctx.lineTo(x,toY(c.l));ctx.stroke();const yO=toY(c.o),yC=toY(c.c);ctx.fillRect(x-bW/2,Math.min(yO,yC),bW,Math.max(2,Math.abs(yC-yO)))});
+  if(emaOn){const em=getEma(data,20).slice(st,end);ctx.strokeStyle='#2962ff';ctx.lineWidth=1.5;ctx.beginPath();em.forEach((v,i)=>{const x=i*sX+sX/2,y=toY(v);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()}
+  const lst=data.at(-1),lY=toY(lst.c),lC=lst.c>=lst.o?'#089981':'#f23645';
+  ctx.strokeStyle=lC;ctx.beginPath();ctx.moveTo(0,lY);ctx.lineTo(cW,lY);ctx.stroke();ctx.restore();
+  lines.forEach(l=>{const y=toY(l);if(y>=tP&&y<=tP+cH){ctx.fillStyle='#f59e0b';ctx.fillRect(cW+1,y-8,rP-2,16);ctx.fillStyle='#131722';ctx.fillText(fmt(l),cW+4,y+3)}});
+  if(lY>=tP&&lY<=tP+cH){ctx.fillStyle=lC;ctx.fillRect(cW+1,lY-9,rP-2,18);ctx.fillStyle='#fff';ctx.fillText(fmt(lst.c),cW+4,lY+3)}
+  if(rsiOn){const rT=tP+cH+6,rB=rH-8,rs=getRsi(data,14).slice(st,end);ctx.strokeStyle='#2a2e39';ctx.beginPath();ctx.moveTo(0,rT);ctx.lineTo(cW,rT);ctx.stroke();ctx.strokeStyle='#a855f7';ctx.beginPath();rs.forEach((v,i)=>{const x=i*sX+sX/2,y=rT+((100-v)/100)*rB;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#a855f7';ctx.fillText('RSI '+Math.round(rs.at(-1)),cW+4,rT+rB/2)}
+  if(crOn&&crIdx>=0&&crIdx<vw.length){const cc=vw.at(crIdx),cx=crIdx*sX+sX/2,cy=toY(cc.c);ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,h-bP);ctx.moveTo(0,cy);ctx.lineTo(cW,cy);ctx.stroke();setOhlc(cc)}
+  cv._cW=cW;cv._toP=toP;cv._sX=sX;
+}
+async function load(){
+  const p=sym.value.split(':'),fb=parseFloat(p.at(3))||100,m=parseInt(tf.value,10)||15;
+  if(tmr)clearInterval(tmr);lines=[];crIdx=-1;rOff=0;vSc=1;vPan=0;bAu.classList.add('on');
+  let anc=fb;
+  try{if(p.at(0)==='FX'){const r=await fetch(`https://frankfurter.app{p.at(1)}&to=${p.at(2)}`),j=await r.json();if(j?.rates?.[p.at(2)])anc=parseFloat(j.rates[p.at(2)])||fb}}catch(e){}
+  const vol=anc*(0.0005*Math.sqrt(Math.min(m,240)));let cur=anc*(1-0.006*Math.cos(m)),bi=0;data=[];
+  for(let i=0;i<240;i++){if(i%14===0)bi=(Math.random()-0.48)*vol*0.85;const mv=bi+((anc-cur)/(240-i))*0.25+(Math.random()-0.5)*vol*1.4,o=cur,c=i===239?anc:o+mv,bd=Math.abs(c-o);data.push({o,h:Math.max(o,c)+bd*(0.2+Math.random()*0.5)+vol*0.12,l:Math.min(o,c)-bd*(0.2+Math.random()*0.5)-vol*0.12,c});cur=c}
+  const tick=()=>{const l=data.at(-1);prc.innerText=fmt(l.c);prc.style.color=l.c>=l.o?'#089981':'#f23645';if(!crOn||crIdx<0)setOhlc(l);draw()};
+  tick();tmr=setInterval(()=>{const l=data.at(-1);l.c+=(Math.random()-0.495)*l.c*0.00035;if(l.c>l.h)l.h=l.c;if(l.c<l.l)l.l=l.c;tick()},1500);
+}
+let drg=0,md='p',sX=0,sY=0,sO=0,sV=1,sP=0,pD=0,pC=50;
+cv.addEventListener('touchstart',e=>{const rc=cv.getBoundingClientRect();if(e.touches.length===2){drg=0;pD=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);pC=vCnt;return}const t=e.touches.item(0),x=t.clientX-rc.left,y=t.clientY-rc.top;if(lnOn&&cv._toP){lines.push(cv._toP(y));lnOn=0;bLn.classList.remove('on');draw();return}if(crOn&&cv._sX){crIdx=Math.max(0,Math.floor(x/cv._sX));draw();return}drg=1;sX=x;sY=y;sO=rOff;sV=vSc;sP=vPan;md=(cv._cW&&x>cv._cW)?'v':'p'},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();const rc=cv.getBoundingClientRect();if(e.touches.length===2&&pD>0){const d=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);vCnt=Math.min(200,Math.max(12,Math.round(pC*(pD/Math.max(10,d)))));draw();return}const t=e.touches.item(0),x=t.clientX-rc.left,y=t.clientY-rc.top;if(crOn&&cv._sX){crIdx=Math.max(0,Math.floor(x/cv._sX));draw();return}if(!drg)return;if(md==='v'){vSc=Math.min(4.5,Math.max(0.25,sV*Math.exp(-(y-sY)*0.008)));bAu.classList.remove('on');draw()}else{rOff=sO+((x-sX)/((cv._cW||300)/vCnt));if(!bAu.classList.contains('on'))vPan=sP+((y-sY)/140)/vSc;draw()}},{passive:false});
+cv.addEventListener('touchend',()=>{drg=0;pD=0});
+bCr.onclick=()=>{crOn=!crOn;bCr.classList.toggle('on',crOn);if(!crOn)crIdx=-1;draw()};
+bEm.onclick=()=>{emaOn=!emaOn;bEm.classList.toggle('on',emaOn);draw()};
+bRs.onclick=()=>{rsiOn=!rsiOn;bRs.classList.toggle('on',rsiOn);draw()};
+bLn.onclick=()=>{lnOn=!lnOn;bLn.classList.toggle('on',lnOn)};
+bAu.onclick=()=>{vSc=1;vPan=0;rOff=0;bAu.classList.add('on');draw()};
+bRe.onclick=()=>{lines=[];crIdx=-1;vSc=1;vPan=0;vCnt=50;rOff=0;bAu.classList.add('on');draw()};
+window.onresize=draw;sym.onchange=load;tf.onchange=load;load();
