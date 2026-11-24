@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SABER MARKETS - All Instruments</title>
-  <script src="https://jsdelivr.net"></script>
+  <title>SABER MARKETS</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
     body { background: #131722; color: #d1d4dc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     #topbar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #1e222d; border-bottom: 1px solid #2a2e39; flex-wrap: wrap; }
-    .brand { font-weight: bold; color: #2962ff; font-size: 13px; margin-right: 4px; }
-    select { background: #2a2e39; color: #fff; border: 1px solid #363a45; padding: 6px 8px; border-radius: 4px; font-size: 12px; max-width: 150px; }
+    .brand { font-weight: 800; color: #2962ff; font-size: 13px; letter-spacing: 0.5px; margin-right: 4px; }
+    select { background: #2a2e39; color: #ffffff; border: 1px solid #363a45; padding: 6px 8px; border-radius: 5px; font-size: 12px; max-width: 155px; outline: none; }
     #price { margin-left: auto; font-weight: bold; font-size: 14px; color: #089981; }
-    #chart { flex: 1; width: 100%; }
+    #wrap { flex: 1; position: relative; width: 100%; height: 100%; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30,34,45,0.9); padding: 10px 16px; border-radius: 6px; font-size: 13px; color: #b2b5be; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -20,11 +21,11 @@
     <span class="brand">SABER MARKETS</span>
     <select id="symbol">
       <optgroup label="KRIPTO">
-        <option value="CC|BTC|USD">BTC/USD</option>
-        <option value="CC|ETH|USD">ETH/USD</option>
-        <option value="CC|SOL|USD">SOL/USD</option>
-        <option value="CC|XRP|USD">XRP/USD</option>
-        <option value="CC|BNB|USD">BNB/USD</option>
+        <option value="CC|BTC">BTC/USD</option>
+        <option value="CC|ETH">ETH/USD</option>
+        <option value="CC|SOL">SOL/USD</option>
+        <option value="CC|XRP">XRP/USD</option>
+        <option value="CC|BNB">BNB/USD</option>
       </optgroup>
       <optgroup label="EMAS & KOMODITAS">
         <option value="YF|GC=F">GOLD (XAU/USD)</option>
@@ -59,38 +60,138 @@
       <option value="1h">1H</option>
       <option value="1d">1D</option>
     </select>
-    <span id="price">Memuat...</span>
+    <span id="price">--</span>
   </div>
-  <div id="chart"></div>
+  <div id="wrap">
+    <canvas id="canvas"></canvas>
+    <div id="status">Memuat data pasar...</div>
+  </div>
 
   <script>
-    const chartContainer = document.getElementById('chart');
-    const chart = LightweightCharts.createChart(chartContainer, {
-      layout: { background: { color: '#131722' }, textColor: '#d1d4dc' },
-      grid: { vertLines: { color: '#1e222d' }, horzLines: { color: '#1e222d' } },
-      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-      rightPriceScale: { borderColor: '#2a2e39' },
-      timeScale: { borderColor: '#2a2e39', timeVisible: true }
-    });
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const statusEl = document.getElementById('status');
+    const priceEl = document.getElementById('price');
+    let candles = [];
+    let timer = null;
 
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#089981', downColor: '#f23645', borderVisible: false,
-      wickUpColor: '#089981', wickDownColor: '#f23645'
-    });
+    function drawChart() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
 
-    let timer;
-    async function loadChart() {
-      const val = document.getElementById('symbol').value.split('|');
-      const source = val.at(0);
-      const ticker = val.at(1);
+      const w = rect.width;
+      const h = rect.height;
+      ctx.fillStyle = '#131722';
+      ctx.fillRect(0, 0, w, h);
+
+      if (!candles.length) return;
+
+      const rightPad = 62;
+      const bottomPad = 24;
+      const topPad = 16;
+      const chartW = w - rightPad;
+      const chartH = h - bottomPad - topPad;
+
+      let minP = Infinity, maxP = -Infinity;
+      for (const c of candles) {
+        if (c.low < minP) minP = c.low;
+        if (c.high > maxP) maxP = c.high;
+      }
+      const rangeP = (maxP - minP) || 1;
+      minP -= rangeP * 0.05;
+      maxP += rangeP * 0.05;
+      const totalRange = maxP - minP;
+
+      const priceToY = (p) => topPad + ((maxP - p) / totalRange) * chartH;
+
+      // Grid & Price Scale
+      ctx.strokeStyle = '#1e222d';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#787b86';
+      ctx.font = '11px sans-serif';
+      const steps = 6;
+      for (let i = 0; i <= steps; i++) {
+        const val = minP + (totalRange * i) / steps;
+        const y = priceToY(val);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(chartW, y);
+        ctx.stroke();
+        const decimals = val < 10 ? 4 : 2;
+        ctx.fillText(val.toFixed(decimals), chartW + 6, y + 4);
+      }
+
+      // Vertical Separator
+      ctx.strokeStyle = '#2a2e39';
+      ctx.beginPath();
+      ctx.moveTo(chartW, 0);
+      ctx.lineTo(chartW, h);
+      ctx.stroke();
+
+      // Candlesticks
+      const count = candles.length;
+      const stepX = chartW / count;
+      const bodyW = Math.max(2, stepX * 0.65);
+
+      candles.forEach((c, idx) => {
+        const x = idx * stepX + stepX / 2;
+        const isUp = c.close >= c.open;
+        const color = isUp ? '#089981' : '#f23645';
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1;
+
+        // Wick
+        ctx.beginPath();
+        ctx.moveTo(x, priceToY(c.high));
+        ctx.lineTo(x, priceToY(c.low));
+        ctx.stroke();
+
+        // Body
+        const yOpen = priceToY(c.open);
+        const yClose = priceToY(c.close);
+        const bodyTop = Math.min(yOpen, yClose);
+        const bodyH = Math.max(1.5, Math.abs(yClose - yOpen));
+        ctx.fillRect(x - bodyW / 2, bodyTop, bodyW, bodyH);
+      });
+
+      // Last Price Line
+      const last = candles.at(-1);
+      const lastY = priceToY(last.close);
+      const lastColor = last.close >= last.open ? '#089981' : '#f23645';
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = lastColor;
+      ctx.beginPath();
+      ctx.moveTo(0, lastY);
+      ctx.lineTo(chartW, lastY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = lastColor;
+      ctx.fillRect(chartW + 1, lastY - 9, rightPad - 2, 18);
+      ctx.fillStyle = '#ffffff';
+      const dec = last.close < 10 ? 4 : 2;
+      ctx.fillText(last.close.toFixed(dec), chartW + 5, lastY + 4);
+    }
+
+    async function loadData() {
+      const parts = document.getElementById('symbol').value.split('|');
+      const src = parts.at(0);
+      const sym = parts.at(1);
       const intv = document.getElementById('interval').value;
-      document.getElementById('price').innerText = 'Memuat...';
+
+      statusEl.style.display = 'block';
+      statusEl.innerText = 'Mengambil data ' + sym + '...';
 
       if (timer) clearInterval(timer);
 
-      async function fetchCandles() {
+      async function fetchMarket() {
         try {
-          if (source === 'CC') {
+          if (src === 'CC') {
             let ep = 'histominute', agg = 15;
             if (intv === '1m') { ep = 'histominute'; agg = 1; }
             if (intv === '5m') { ep = 'histominute'; agg = 5; }
@@ -98,59 +199,58 @@
             if (intv === '1h') { ep = 'histohour'; agg = 1; }
             if (intv === '1d') { ep = 'histoday'; agg = 1; }
 
-            const url = `https://cryptocompare.com{ep}?fsym=${ticker}&tsym=USD&limit=200&aggregate=${agg}`;
+            const url = `https://cryptocompare.com{ep}?fsym=${sym}&tsym=USD&limit=70&aggregate=${agg}`;
             const res = await fetch(url);
             const json = await res.json();
-            const candles = json.Data.Data.map(d => ({
+            candles = json.Data.Data.map(d => ({
               time: d.time, open: d.open, high: d.high, low: d.low, close: d.close
             }));
-            candleSeries.setData(candles);
-            document.getElementById('price').innerText = candles.at(-1).close.toLocaleString();
           } else {
             let range = '5d';
             if (intv === '1m') range = '1d';
             if (intv === '1h') range = '1mo';
-            if (intv === '1d') range = '1y';
+            if (intv === '1d') range = '6mo';
 
-            const yfUrl = `https://yahoo.com{encodeURIComponent(ticker)}?interval=${intv}&range=${range}`;
-            const proxyUrl = `https://allorigins.win{encodeURIComponent(yfUrl)}`;
-            const res = await fetch(proxyUrl);
+            const yf = `https://yahoo.com{encodeURIComponent(sym)}?interval=${intv}&range=${range}`;
+            const proxy = `https://corsproxy.io{encodeURIComponent(yf)}`;
+            const res = await fetch(proxy);
             const json = await res.json();
             const result = json.chart.result.at(0);
-            const timestamps = result.timestamp;
-            const quote = result.indicators.quote.at(0);
+            const ts = result.timestamp;
+            const q = result.indicators.quote.at(0);
 
-            const candles = [];
-            for (let i = 0; i < timestamps.length; i++) {
-              if (quote.open.at(i) !== null && quote.close.at(i) !== null) {
-                candles.push({
-                  time: timestamps.at(i),
-                  open: quote.open.at(i),
-                  high: quote.high.at(i),
-                  low: quote.low.at(i),
-                  close: quote.close.at(i)
-                });
+            const list = [];
+            for (let i = 0; i < ts.length; i++) {
+              const o = q.open.at(i), h = q.high.at(i), l = q.low.at(i), c = q.close.at(i);
+              if (o !== null && c !== null) {
+                list.push({ time: ts.at(i), open: o, high: h, low: l, close: c });
               }
             }
-            candleSeries.setData(candles);
-            document.getElementById('price').innerText = candles.at(-1).close.toLocaleString();
+            candles = list.slice(-70);
           }
-        } catch (err) {
-          document.getElementById('price').innerText = 'Coba Timeframe Lain';
+
+          if (candles.length > 0) {
+            const last = candles.at(-1);
+            const dec = last.close < 10 ? 4 : 2;
+            priceEl.innerText = last.close.toFixed(dec);
+            priceEl.style.color = last.close >= last.open ? '#089981' : '#f23645';
+            statusEl.style.display = 'none';
+            drawChart();
+          }
+        } catch (e) {
+          statusEl.style.display = 'block';
+          statusEl.innerText = 'Gagal memuat: ' + e.message;
         }
       }
 
-      await fetchCandles();
-      timer = setInterval(fetchCandles, 10000);
+      await fetchMarket();
+      timer = setInterval(fetchMarket, 8000);
     }
 
-    window.addEventListener('resize', () => {
-      chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
-    });
-
-    document.getElementById('symbol').addEventListener('change', loadChart);
-    document.getElementById('interval').addEventListener('change', loadChart);
-    loadChart();
+    window.addEventListener('resize', drawChart);
+    document.getElementById('symbol').addEventListener('change', loadData);
+    document.getElementById('interval').addEventListener('change', loadData);
+    loadData();
   </script>
 </body>
 </html>
