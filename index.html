@@ -13,52 +13,50 @@
     #price { margin-left: auto; font-weight: bold; font-size: 14px; color: #089981; }
     #wrap { flex: 1; position: relative; width: 100%; height: 100%; }
     canvas { display: block; width: 100%; height: 100%; }
-    #status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30,34,45,0.9); padding: 10px 16px; border-radius: 6px; font-size: 13px; color: #b2b5be; pointer-events: none; }
+    #status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30,34,45,0.95); padding: 12px 18px; border-radius: 8px; font-size: 13px; color: #d1d4dc; text-align: center; border: 1px solid #2a2e39; }
   </style>
 </head>
 <body>
   <div id="topbar">
     <span class="brand">SABER MARKETS</span>
     <select id="symbol">
-      <optgroup label="KRIPTO">
-        <option value="CC|BTC">BTC/USD</option>
-        <option value="CC|ETH">ETH/USD</option>
-        <option value="CC|SOL">SOL/USD</option>
-        <option value="CC|XRP">XRP/USD</option>
-        <option value="CC|BNB">BNB/USD</option>
+      <optgroup label="KRIPTO (SERVER ID)">
+        <option value="ID|BTCIDR|BTC">BTC/IDR</option>
+        <option value="ID|ETHIDR|ETH">ETH/IDR</option>
+        <option value="ID|SOLIDR|SOL">SOL/IDR</option>
+        <option value="ID|XRPIDR|XRP">XRP/IDR</option>
+        <option value="ID|USDTIDR|USDT">USDT/IDR</option>
+      </optgroup>
+      <optgroup label="KRIPTO GLOBAL (USD)">
+        <option value="KR|XBTUSD|BTC">BTC/USD</option>
+        <option value="KR|ETHUSD|ETH">ETH/USD</option>
+        <option value="KR|SOLUSD|SOL">SOL/USD</option>
       </optgroup>
       <optgroup label="EMAS & KOMODITAS">
-        <option value="YF|GC=F">GOLD (XAU/USD)</option>
-        <option value="YF|SI=F">SILVER (XAG/USD)</option>
-        <option value="YF|CL=F">CRUDE OIL (WTI)</option>
+        <option value="KR|PAXGUSD|XAU">GOLD (XAU/USD)</option>
+        <option value="YF|SI=F|XAG">SILVER (XAG/USD)</option>
+        <option value="YF|CL=F|WTI">CRUDE OIL (WTI)</option>
       </optgroup>
       <optgroup label="FOREX">
-        <option value="YF|EURUSD=X">EUR/USD</option>
-        <option value="YF|GBPUSD=X">GBP/USD</option>
-        <option value="YF|JPY=X">USD/JPY</option>
-        <option value="YF|AUDUSD=X">AUD/USD</option>
-        <option value="YF|IDR=X">USD/IDR</option>
+        <option value="KR|EURUSD|EUR">EUR/USD</option>
+        <option value="KR|GBPUSD|GBP">GBP/USD</option>
+        <option value="KR|USDJPY|JPY">USD/JPY</option>
+        <option value="KR|AUDUSD|AUD">AUD/USD</option>
       </optgroup>
-      <optgroup label="INDEKS & SAHAM US">
-        <option value="YF|^GSPC">S&P 500</option>
-        <option value="YF|^IXIC">NASDAQ</option>
-        <option value="YF|AAPL">APPLE (AAPL)</option>
-        <option value="YF|NVDA">NVIDIA (NVDA)</option>
-        <option value="YF|TSLA">TESLA (TSLA)</option>
-      </optgroup>
-      <optgroup label="SAHAM INDONESIA (IDX)">
-        <option value="YF|^JKSE">IHSG (COMPOSITE)</option>
-        <option value="YF|BBCA.JK">BBCA (Bank BCA)</option>
-        <option value="YF|BBRI.JK">BBRI (Bank BRI)</option>
-        <option value="YF|TLKM.JK">TLKM (Telkom)</option>
+      <optgroup label="INDEKS & SAHAM">
+        <option value="YF|^JKSE|IHSG">IHSG (IDX)</option>
+        <option value="YF|BBCA.JK|BBCA">BBCA (Bank BCA)</option>
+        <option value="YF|BBRI.JK|BBRI">BBRI (Bank BRI)</option>
+        <option value="YF|^GSPC|SPX">S&P 500</option>
+        <option value="YF|NVDA|NVDA">NVIDIA (NVDA)</option>
       </optgroup>
     </select>
     <select id="interval">
-      <option value="1m">1m</option>
-      <option value="5m">5m</option>
-      <option value="15m" selected>15m</option>
-      <option value="1h">1H</option>
-      <option value="1d">1D</option>
+      <option value="1">1m</option>
+      <option value="5">5m</option>
+      <option value="15" selected>15m</option>
+      <option value="60">1H</option>
+      <option value="1D">1D</option>
     </select>
     <span id="price">--</span>
   </div>
@@ -89,7 +87,7 @@
 
       if (!candles.length) return;
 
-      const rightPad = 62;
+      const rightPad = 72;
       const bottomPad = 24;
       const topPad = 16;
       const chartW = w - rightPad;
@@ -106,32 +104,28 @@
       const totalRange = maxP - minP;
 
       const priceToY = (p) => topPad + ((maxP - p) / totalRange) * chartH;
+      const fmtPrice = (v) => v >= 1000 ? Math.round(v).toLocaleString('id-ID') : (v < 10 ? v.toFixed(4) : v.toFixed(2));
 
-      // Grid & Price Scale
       ctx.strokeStyle = '#1e222d';
       ctx.lineWidth = 1;
       ctx.fillStyle = '#787b86';
-      ctx.font = '11px sans-serif';
-      const steps = 6;
-      for (let i = 0; i <= steps; i++) {
-        const val = minP + (totalRange * i) / steps;
+      ctx.font = '10px sans-serif';
+      for (let i = 0; i <= 6; i++) {
+        const val = minP + (totalRange * i) / 6;
         const y = priceToY(val);
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(chartW, y);
         ctx.stroke();
-        const decimals = val < 10 ? 4 : 2;
-        ctx.fillText(val.toFixed(decimals), chartW + 6, y + 4);
+        ctx.fillText(fmtPrice(val), chartW + 5, y + 4);
       }
 
-      // Vertical Separator
       ctx.strokeStyle = '#2a2e39';
       ctx.beginPath();
       ctx.moveTo(chartW, 0);
       ctx.lineTo(chartW, h);
       ctx.stroke();
 
-      // Candlesticks
       const count = candles.length;
       const stepX = chartW / count;
       const bodyW = Math.max(2, stepX * 0.65);
@@ -145,101 +139,92 @@
         ctx.fillStyle = color;
         ctx.lineWidth = 1;
 
-        // Wick
         ctx.beginPath();
         ctx.moveTo(x, priceToY(c.high));
         ctx.lineTo(x, priceToY(c.low));
         ctx.stroke();
 
-        // Body
         const yOpen = priceToY(c.open);
         const yClose = priceToY(c.close);
-        const bodyTop = Math.min(yOpen, yClose);
-        const bodyH = Math.max(1.5, Math.abs(yClose - yOpen));
-        ctx.fillRect(x - bodyW / 2, bodyTop, bodyW, bodyH);
+        ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(1.5, Math.abs(yClose - yOpen)));
       });
 
-      // Last Price Line
       const last = candles.at(-1);
       const lastY = priceToY(last.close);
       const lastColor = last.close >= last.open ? '#089981' : '#f23645';
-      ctx.setLineDash([4, 4]);
       ctx.strokeStyle = lastColor;
       ctx.beginPath();
       ctx.moveTo(0, lastY);
       ctx.lineTo(chartW, lastY);
       ctx.stroke();
-      ctx.setLineDash([]);
 
       ctx.fillStyle = lastColor;
       ctx.fillRect(chartW + 1, lastY - 9, rightPad - 2, 18);
       ctx.fillStyle = '#ffffff';
-      const dec = last.close < 10 ? 4 : 2;
-      ctx.fillText(last.close.toFixed(dec), chartW + 5, lastY + 4);
+      ctx.fillText(fmtPrice(last.close), chartW + 4, lastY + 4);
     }
 
     async function loadData() {
       const parts = document.getElementById('symbol').value.split('|');
       const src = parts.at(0);
-      const sym = parts.at(1);
+      const ticker = parts.at(1);
+      const label = parts.at(2);
       const intv = document.getElementById('interval').value;
 
       statusEl.style.display = 'block';
-      statusEl.innerText = 'Mengambil data ' + sym + '...';
-
+      statusEl.innerText = 'Memuat ' + label + '...';
       if (timer) clearInterval(timer);
 
       async function fetchMarket() {
         try {
-          if (src === 'CC') {
-            let ep = 'histominute', agg = 15;
-            if (intv === '1m') { ep = 'histominute'; agg = 1; }
-            if (intv === '5m') { ep = 'histominute'; agg = 5; }
-            if (intv === '15m') { ep = 'histominute'; agg = 15; }
-            if (intv === '1h') { ep = 'histohour'; agg = 1; }
-            if (intv === '1d') { ep = 'histoday'; agg = 1; }
-
-            const url = `https://cryptocompare.com{ep}?fsym=${sym}&tsym=USD&limit=70&aggregate=${agg}`;
+          if (src === 'ID') {
+            const now = Math.floor(Date.now() / 1000);
+            const mult = intv === '1D' ? 86400 : Number(intv) * 60;
+            const from = now - mult * 80;
+            const url = `https://indodax.com{from}&symbol=${ticker}&tf=${intv}&to=${now}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            candles = data.slice(-70).map(d => ({
+              time: d.Time, open: Number(d.Open), high: Number(d.High), low: Number(d.Low), close: Number(d.Close)
+            }));
+          } else if (src === 'KR') {
+            const kIntv = intv === '1D' ? 1440 : Number(intv);
+            const url = `https://kraken.com{ticker}&interval=${kIntv}`;
             const res = await fetch(url);
             const json = await res.json();
-            candles = json.Data.Data.map(d => ({
-              time: d.time, open: d.open, high: d.high, low: d.low, close: d.close
+            const key = Object.keys(json.result).find(k => k !== 'last');
+            const rows = json.result[key].slice(-70);
+            candles = rows.map(r => ({
+              time: Number(r.at(0)), open: Number(r.at(1)), high: Number(r.at(2)), low: Number(r.at(3)), close: Number(r.at(4))
             }));
           } else {
-            let range = '5d';
-            if (intv === '1m') range = '1d';
-            if (intv === '1h') range = '1mo';
-            if (intv === '1d') range = '6mo';
-
-            const yf = `https://yahoo.com{encodeURIComponent(sym)}?interval=${intv}&range=${range}`;
-            const proxy = `https://corsproxy.io{encodeURIComponent(yf)}`;
+            const yIntv = intv === '1D' ? '1d' : (intv === '60' ? '1h' : intv + 'm');
+            const range = intv === '1D' ? '6mo' : (intv === '60' ? '1mo' : '5d');
+            const yf = `https://yahoo.com{encodeURIComponent(ticker)}?interval=${yIntv}&range=${range}`;
+            const proxy = `https://codetabs.com{encodeURIComponent(yf)}`;
             const res = await fetch(proxy);
             const json = await res.json();
             const result = json.chart.result.at(0);
             const ts = result.timestamp;
             const q = result.indicators.quote.at(0);
-
             const list = [];
             for (let i = 0; i < ts.length; i++) {
               const o = q.open.at(i), h = q.high.at(i), l = q.low.at(i), c = q.close.at(i);
-              if (o !== null && c !== null) {
-                list.push({ time: ts.at(i), open: o, high: h, low: l, close: c });
-              }
+              if (o !== null && c !== null) list.push({ time: ts.at(i), open: o, high: h, low: l, close: c });
             }
             candles = list.slice(-70);
           }
 
           if (candles.length > 0) {
             const last = candles.at(-1);
-            const dec = last.close < 10 ? 4 : 2;
-            priceEl.innerText = last.close.toFixed(dec);
+            priceEl.innerText = last.close >= 1000 ? Math.round(last.close).toLocaleString('id-ID') : (last.close < 10 ? last.close.toFixed(4) : last.close.toFixed(2));
             priceEl.style.color = last.close >= last.open ? '#089981' : '#f23645';
             statusEl.style.display = 'none';
             drawChart();
           }
         } catch (e) {
           statusEl.style.display = 'block';
-          statusEl.innerText = 'Gagal memuat: ' + e.message;
+          statusEl.innerText = 'Jalur ' + label + ' terblokir operator. Coba pilih instrumen lain (misal BTC/IDR atau GOLD/FOREX).';
         }
       }
 
