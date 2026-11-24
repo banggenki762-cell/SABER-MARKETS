@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SABER MARKETS</title>
-  <script src="https://unpkg.com"></script>
+  <title>SABER MARKETS - All Instruments</title>
+  <script src="https://jsdelivr.net"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
     body { background: #131722; color: #d1d4dc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    #topbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #1e222d; border-bottom: 1px solid #2a2e39; flex-wrap: wrap; }
-    .brand { font-weight: bold; color: #2962ff; font-size: 14px; margin-right: 4px; }
-    select { background: #2a2e39; color: #fff; border: 1px solid #363a45; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
-    #price { margin-left: auto; font-weight: bold; font-size: 15px; color: #089981; }
+    #topbar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #1e222d; border-bottom: 1px solid #2a2e39; flex-wrap: wrap; }
+    .brand { font-weight: bold; color: #2962ff; font-size: 13px; margin-right: 4px; }
+    select { background: #2a2e39; color: #fff; border: 1px solid #363a45; padding: 6px 8px; border-radius: 4px; font-size: 12px; max-width: 150px; }
+    #price { margin-left: auto; font-weight: bold; font-size: 14px; color: #089981; }
     #chart { flex: 1; width: 100%; }
   </style>
 </head>
@@ -19,20 +19,45 @@
   <div id="topbar">
     <span class="brand">SABER MARKETS</span>
     <select id="symbol">
-      <option value="BTC">BTC/USDT</option>
-      <option value="ETH">ETH/USDT</option>
-      <option value="SOL">SOL/USDT</option>
-      <option value="XRP">XRP/USDT</option>
-      <option value="PAXG">GOLD (XAU)</option>
-      <option value="BNB">BNB/USDT</option>
+      <optgroup label="KRIPTO">
+        <option value="CC|BTC|USD">BTC/USD</option>
+        <option value="CC|ETH|USD">ETH/USD</option>
+        <option value="CC|SOL|USD">SOL/USD</option>
+        <option value="CC|XRP|USD">XRP/USD</option>
+        <option value="CC|BNB|USD">BNB/USD</option>
+      </optgroup>
+      <optgroup label="EMAS & KOMODITAS">
+        <option value="YF|GC=F">GOLD (XAU/USD)</option>
+        <option value="YF|SI=F">SILVER (XAG/USD)</option>
+        <option value="YF|CL=F">CRUDE OIL (WTI)</option>
+      </optgroup>
+      <optgroup label="FOREX">
+        <option value="YF|EURUSD=X">EUR/USD</option>
+        <option value="YF|GBPUSD=X">GBP/USD</option>
+        <option value="YF|JPY=X">USD/JPY</option>
+        <option value="YF|AUDUSD=X">AUD/USD</option>
+        <option value="YF|IDR=X">USD/IDR</option>
+      </optgroup>
+      <optgroup label="INDEKS & SAHAM US">
+        <option value="YF|^GSPC">S&P 500</option>
+        <option value="YF|^IXIC">NASDAQ</option>
+        <option value="YF|AAPL">APPLE (AAPL)</option>
+        <option value="YF|NVDA">NVIDIA (NVDA)</option>
+        <option value="YF|TSLA">TESLA (TSLA)</option>
+      </optgroup>
+      <optgroup label="SAHAM INDONESIA (IDX)">
+        <option value="YF|^JKSE">IHSG (COMPOSITE)</option>
+        <option value="YF|BBCA.JK">BBCA (Bank BCA)</option>
+        <option value="YF|BBRI.JK">BBRI (Bank BRI)</option>
+        <option value="YF|TLKM.JK">TLKM (Telkom)</option>
+      </optgroup>
     </select>
     <select id="interval">
       <option value="1m">1m</option>
       <option value="5m">5m</option>
       <option value="15m" selected>15m</option>
-      <option value="1H">1H</option>
-      <option value="4H">4H</option>
-      <option value="1D">1D</option>
+      <option value="1h">1H</option>
+      <option value="1d">1D</option>
     </select>
     <span id="price">Memuat...</span>
   </div>
@@ -55,36 +80,68 @@
 
     let timer;
     async function loadChart() {
-      const sym = document.getElementById('symbol').value;
+      const val = document.getElementById('symbol').value.split('|');
+      const source = val.at(0);
+      const ticker = val.at(1);
       const intv = document.getElementById('interval').value;
-      const instId = sym + '-USDT';
       document.getElementById('price').innerText = 'Memuat...';
 
       if (timer) clearInterval(timer);
 
       async function fetchCandles() {
         try {
-          const res = await fetch(`https://okx.com{instId}&bar=${intv}&limit=200`);
-          const json = await res.json();
-          if (json && json.data && json.data.length > 0) {
-            const candles = json.data.reverse().map(d => ({
-              time: Math.floor(Number(d.at(0)) / 1000),
-              open: parseFloat(d.at(1)),
-              high: parseFloat(d.at(2)),
-              low: parseFloat(d.at(3)),
-              close: parseFloat(d.at(4))
+          if (source === 'CC') {
+            let ep = 'histominute', agg = 15;
+            if (intv === '1m') { ep = 'histominute'; agg = 1; }
+            if (intv === '5m') { ep = 'histominute'; agg = 5; }
+            if (intv === '15m') { ep = 'histominute'; agg = 15; }
+            if (intv === '1h') { ep = 'histohour'; agg = 1; }
+            if (intv === '1d') { ep = 'histoday'; agg = 1; }
+
+            const url = `https://cryptocompare.com{ep}?fsym=${ticker}&tsym=USD&limit=200&aggregate=${agg}`;
+            const res = await fetch(url);
+            const json = await res.json();
+            const candles = json.Data.Data.map(d => ({
+              time: d.time, open: d.open, high: d.high, low: d.low, close: d.close
             }));
             candleSeries.setData(candles);
-            const last = candles.at(-1);
-            document.getElementById('price').innerText = '$' + last.close.toLocaleString();
+            document.getElementById('price').innerText = candles.at(-1).close.toLocaleString();
+          } else {
+            let range = '5d';
+            if (intv === '1m') range = '1d';
+            if (intv === '1h') range = '1mo';
+            if (intv === '1d') range = '1y';
+
+            const yfUrl = `https://yahoo.com{encodeURIComponent(ticker)}?interval=${intv}&range=${range}`;
+            const proxyUrl = `https://allorigins.win{encodeURIComponent(yfUrl)}`;
+            const res = await fetch(proxyUrl);
+            const json = await res.json();
+            const result = json.chart.result.at(0);
+            const timestamps = result.timestamp;
+            const quote = result.indicators.quote.at(0);
+
+            const candles = [];
+            for (let i = 0; i < timestamps.length; i++) {
+              if (quote.open.at(i) !== null && quote.close.at(i) !== null) {
+                candles.push({
+                  time: timestamps.at(i),
+                  open: quote.open.at(i),
+                  high: quote.high.at(i),
+                  low: quote.low.at(i),
+                  close: quote.close.at(i)
+                });
+              }
+            }
+            candleSeries.setData(candles);
+            document.getElementById('price').innerText = candles.at(-1).close.toLocaleString();
           }
         } catch (err) {
-          document.getElementById('price').innerText = 'Gagal Muat';
+          document.getElementById('price').innerText = 'Coba Timeframe Lain';
         }
       }
 
       await fetchCandles();
-      timer = setInterval(fetchCandles, 3000);
+      timer = setInterval(fetchCandles, 10000);
     }
 
     window.addEventListener('resize', () => {
