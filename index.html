@@ -2,514 +2,354 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>SABER MARKETS</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;user-select:none;-webkit-user-select:none}
-html,body{width:100%;height:100%;background:#000;color:#d1d4dc;overflow:hidden}
-body{display:flex;flex-direction:column;height:100vh}
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>SABER MARKETS - Pro Financial Charting</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo">SABER <span>MARKETS</span></div>
+    <p class="auth-sub">Platform Analisis Charting & Data Pasar Real-Time</p>
+    <button id="btnGoogleLogin" class="g-btn">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.5H12v4.8h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 21.1 7.4 24 12 24z"/></svg>
+      <span>Lanjutkan dengan Google</span>
+    </button>
+    <div id="authErr" class="auth-err"></div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none">
+  <div id="pgW" class="pg">
+    <div id="wlH">
+      <b style="font-size:15px">SABER <span style="color:#2962ff">MARKETS</span></b>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="userBadge" class="u-badge"></span>
+        <button class="srch-btn" id="openSrchTop" title="Cari Simbol">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        </button>
+        <button id="btnLogout" class="out-btn">Keluar</button>
+      </div>
+    </div>
+    <div id="wlL"></div>
+  </div>
+
+  <div id="pgS" class="pg">
+    <div id="srTop">
+      <button class="srch-btn" id="backSrch">
+        <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <input id="srInp" placeholder="Cari simbol atau broker (OANDA, FXCM, XAU, BTC, BBCA...)">
+    </div>
+    <div id="cats">
+      <button class="cat on" data-cat="ALL">Seluruh</button>
+      <button class="cat" data-cat="Komoditas">Komoditas</button>
+      <button class="cat" data-cat="Kripto">Kripto</button>
+      <button class="cat" data-cat="Forex">Forex</button>
+      <button class="cat" data-cat="Saham">Saham</button>
+      <button class="cat" data-cat="Indeks">Indeks</button>
+    </div>
+    <div id="srL"></div>
+  </div>
+
+  <div id="pgC" class="pg on">
+    <div id="cW">
+      <canvas id="cv"></canvas>
+      <div id="feedStatus" class="feed-tag">Memuat data pasar...</div>
+      <div id="hnt">Sentuh & tarik di grafik</div>
+      <div id="repBar">
+        <span style="font-size:10px;color:#38bdf8;font-weight:700">REPLAY</span>
+        <button class="rb" id="rStep">Maju 1 Bar</button>
+        <button class="rb" id="rPlay">Play</button>
+        <button class="rb" id="rExit" style="color:#f23645">Keluar</button>
+      </div>
+      <div id="objBar">
+        <span id="objLabel">Objek Terpilih</span>
+        <button class="rb" id="objColor">Warna</button>
+        <button class="rb" id="objDel" style="color:#f23645">Hapus</button>
+        <button class="rb" id="objDone">Selesai</button>
+      </div>
+      <div id="shI" class="sh">
+        <div class="sh-head"><b>INDIKATOR TEKNIKAL</b><button class="cls-sh" id="clsShI">✕</button></div>
+        <div class="gr">
+          <button class="op" id="opE20"><span>EMA 20</span><b>OFF</b></button>
+          <button class="op" id="opE50"><span>EMA 50</span><b>OFF</b></button>
+          <button class="op" id="opM100"><span>MA 100</span><b>OFF</b></button>
+          <button class="op" id="opBb"><span>Bollinger Bands</span><b>OFF</b></button>
+          <button class="op" id="opRsi"><span>RSI 14</span><b>OFF</b></button>
+        </div>
+      </div>
+      <div id="shD" class="sh">
+        <div class="sh-head"><b>ALAT GAMBAR & FIBONACCI</b><button class="cls-sh" id="clsShD">✕</button></div>
+        <div class="d-sec">Peralatan Tren</div>
+        <div class="gr3">
+          <button class="op3" data-tool="trend"><span>Garis Tren</span></button>
+          <button class="op3" data-tool="ray"><span>Sinar</span></button>
+          <button class="op3" data-tool="info"><span>Garis Info</span></button>
+          <button class="op3" data-tool="ext"><span>Perpanjangan</span></button>
+          <button class="op3" data-tool="hline"><span>Horizontal</span></button>
+          <button class="op3" data-tool="hray"><span>Sinar Horiz</span></button>
+          <button class="op3" data-tool="vline"><span>Vertikal</span></button>
+          <button class="op3" data-tool="cross"><span>Persilangan</span></button>
+          <button class="op3" data-tool="chan"><span>Kanal Paralel</span></button>
+        </div>
+        <div class="d-sec">Gann, Fibonacci & Proyeksi</div>
+        <div class="gr3">
+          <button class="op3" data-tool="fib"><span>Fib Retrace</span></button>
+          <button class="op3" data-tool="fibext"><span>Fib Ekstensi</span></button>
+          <button class="op3" data-tool="fibtz"><span>Fib Waktu</span></button>
+          <button class="op3" data-tool="gannbox"><span>Kotak Gann</span></button>
+          <button class="op3" data-tool="gannfan"><span>Kipas Gann</span></button>
+          <button class="op3" data-tool="long"><span>Posisi Buy</span></button>
+          <button class="op3" data-tool="short"><span>Posisi Sell</span></button>
+          <button class="op3" data-tool="box"><span>Kotak Zona</span></button>
+          <button class="op3" id="clrD" style="color:#f23645"><span>Hapus Semua</span></button>
+        </div>
+      </div>
+    </div>
+    <div id="bar">
+      <div class="pk" id="openSrchBar"><b id="cSym">XAUUSD</b><span id="cBrk">OANDA</span>
+        <select id="tf" onclick="event.stopPropagation()">
+          <option value="1m">1m</option><option value="5m">5m</option><option value="15m" selected>15m</option>
+          <option value="1h">1H</option><option value="4h">4H</option><option value="1d">1D</option>
+        </select>
+      </div>
+      <button class="tb" id="bRep">Replay</button>
+      <button class="tb" id="bD">Gambar</button>
+      <button class="tb" id="bI">Indikator</button>
+      <button class="tb" id="bC">Crosshair</button>
+      <button class="tb" id="bU">Undo</button>
+      <button class="tb on" id="bA">Auto</button>
+    </div>
+  </div>
+
+  <div id="nav">
+    <button class="nv" id="nW">Daftar Pantau</button>
+    <button class="nv on" id="nC">Chart</button>
+    <button class="nv" id="nI">Indikator</button>
+  </div>
+</div>
+
+<script type="module" src="auth.js"></script>
+</body>
+</html>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none;-webkit-user-select:none}
+html,body{position:fixed;inset:0;width:100%;height:100%;background:#000;color:#d1d4dc;overflow:hidden}
+body{display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+#authGate{position:fixed;inset:0;background:radial-gradient(circle at top,#141b2d 0%,#06080d 100%);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+.auth-card{background:#121620;border:1px solid #262c3a;border-radius:16px;padding:28px 22px;max-width:360px;width:100%;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.7)}
+.auth-logo{font-weight:900;font-size:22px;letter-spacing:.8px;color:#fff}
+.auth-logo span{color:#2962ff}
+.auth-sub{font-size:12px;color:#868993;margin:8px 0 22px;line-height:1.4}
+.g-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#111;border:none;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.g-btn:active{opacity:.85}
+.auth-err{color:#f23645;font-size:11px;margin-top:12px}
+#appShell{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .pg{flex:1;display:none;flex-direction:column;min-height:0;overflow:hidden}
 .pg.on{display:flex}
-#wlH{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1e222d}
-#wlS{width:100%;background:#161a23;border:1px solid #2a2e39;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;outline:none}
-#wlL{flex:1;overflow-y:auto}
-.row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #14171f;cursor:pointer}
+#wlH{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #1e222d;flex-shrink:0}
+.u-badge{font-size:10px;color:#38bdf8;background:#161a23;padding:4px 8px;border-radius:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out-btn{background:#222631;border:1px solid #2f3441;color:#f23645;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer}
+.srch-btn{background:none;border:none;color:#fff;padding:6px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.srch-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2}
+#wlL,#srL{flex:1;overflow-y:auto;max-width:900px;width:100%;margin:0 auto}
+.row{display:flex;align-items:center;gap:11px;padding:11px 16px;border-bottom:1px solid #14171f;cursor:pointer}
+.row:hover,.row:active{background:#141821}
 .ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;flex-shrink:0}
 .mid{flex:1;min-width:0}
-.sym{font-weight:700;font-size:14px;color:#fff}
+.sym{font-weight:700;font-size:14px;color:#fff;display:flex;align-items:center;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block}
 .dsc{font-size:11px;color:#787b86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .rgt{text-align:right;flex-shrink:0}
 .prc{font-weight:700;font-size:14px;color:#fff}
 .chg{font-size:11px;margin-top:2px}
 .up{color:#089981}.dn{color:#f23645}.nt{color:#787b86}
-#cW{flex:1;position:relative;width:100%;min-height:0;touch-action:none;background:#0b0e14}
+#srTop{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1e222d;max-width:900px;width:100%;margin:0 auto;flex-shrink:0}
+#srInp{flex:1;background:none;border:none;color:#fff;font-size:15px;outline:none}
+#cats{display:flex;gap:8px;padding:8px 14px;border-bottom:1px solid #14171f;overflow-x:auto;max-width:900px;width:100%;margin:0 auto;flex-shrink:0}
+.cat{background:#181c27;border:none;color:#d1d4dc;padding:6px 13px;border-radius:16px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+.cat.on{background:#fff;color:#000}
+.sr-brk{display:flex;align-items:center;justify-content:flex-end;gap:5px;font-size:12px;font-weight:700;color:#fff}
+.b-badge{width:15px;height:15px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#fff}
+.sr-typ{font-size:10px;color:#787b86;margin-top:2px}
+.add-btn{background:none;border:none;color:#d1d4dc;font-size:18px;padding:4px 6px;margin-left:4px;cursor:pointer}
+.add-btn.added{color:#2962ff}
+#cW{flex:1;position:relative;width:100%;min-height:0;touch-action:none;background:#0b0e14;cursor:crosshair}
 canvas{display:block;width:100%;height:100%}
-#hnt{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#2962ff;color:#fff;padding:5px 12px;border-radius:12px;font-size:11px;display:none;white-space:nowrap;z-index:15}
-#repBar{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#161a23;border:1px solid #2962ff;padding:5px 8px;border-radius:10px;display:none;align-items:center;gap:6px;z-index:16}
-#repBar.on{display:flex}
-.rb{background:#222631;border:1px solid #2f3441;color:#fff;padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600}
+.feed-tag{position:absolute;top:24px;left:10px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(8,153,129,.18);color:#089981;pointer-events:none}
+#hnt,#repBar,#objBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#161a23;border:1px solid #2962ff;padding:5px 10px;border-radius:10px;display:none;align-items:center;gap:6px;z-index:16;font-size:11px;white-space:nowrap}
+#hnt{background:#2962ff;color:#fff}
+#repBar.on,#objBar.on{display:flex}
+.rb{background:#222631;border:1px solid #2f3441;color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer}
 .rb.act{background:#2962ff;border-color:#2962ff}
-#bar{display:flex;align-items:center;gap:7px;padding:6px 10px;background:#0b0e14;border-top:1px solid #1e222d;overflow-x:auto;flex-shrink:0}
-.pk{display:flex;align-items:center;gap:5px;background:#161a23;padding:5px 9px;border-radius:6px;border:1px solid #2a2e39;flex-shrink:0}
-.pk b{color:#fff;font-size:13px}
-.pk select{background:none;border:none;color:#d1d4dc;font-size:12px;font-weight:600;outline:none}
-.tb{background:none;border:1px solid #222631;color:#d1d4dc;padding:5px 8px;border-radius:6px;font-size:12px;flex-shrink:0}
+#bar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#0b0e14;border-top:1px solid #1e222d;overflow-x:auto;flex-shrink:0}
+.pk{display:flex;align-items:center;gap:5px;background:#161a23;padding:5px 9px;border-radius:6px;border:1px solid #2a2e39;flex-shrink:0;cursor:pointer}
+.pk b{color:#fff;font-size:12px}
+.pk span{font-size:9px;color:#38bdf8;font-weight:700}
+.pk select{background:none;border:none;color:#d1d4dc;font-size:12px;font-weight:600;outline:none;cursor:pointer}
+.tb{background:none;border:1px solid #222631;color:#d1d4dc;padding:5px 9px;border-radius:6px;font-size:11px;flex-shrink:0;cursor:pointer}
 .tb.on{color:#fff;background:#2962ff;border-color:#2962ff}
 #nav{display:flex;justify-content:space-around;padding:7px 0 9px;background:#000;border-top:1px solid #1e222d;flex-shrink:0}
-.nv{background:none;border:none;color:#787b86;font-size:11px;font-weight:600}
+.nv{background:none;border:none;color:#787b86;font-size:11px;font-weight:600;cursor:pointer}
 .nv.on{color:#fff}
-.sh{position:absolute;bottom:8px;left:10px;right:10px;background:#161a23;border:1px solid #2a2e39;border-radius:10px;padding:10px;display:none;z-index:20}
+.sh{position:absolute;bottom:8px;left:10px;right:10px;max-width:480px;margin:0 auto;background:#161a23;border:1px solid #2a2e39;border-radius:12px;padding:12px;display:none;z-index:20;max-height:70%;overflow-y:auto}
 .sh.on{display:block}
-.gr{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px}
-.op{background:#222631;border:1px solid #2f3441;color:#d1d4dc;padding:8px;border-radius:6px;font-size:12px;display:flex;justify-content:space-between}
-.op.on{border-color:#2962ff;background:rgba(41,98,255,.25);color:#fff}
-@media (orientation:landscape){#nav{display:none}#bar{padding:4px 10px}}
-</style>
-</head>
-<body>
-<div id="pgW" class="pg">
-  <div id="wlH"><b style="font-size:15px">SABER <span style="color:#2962ff">MARKETS</span></b><span style="font-size:11px;color:#787b86">Daftar Pantau</span></div>
-  <div style="padding:8px 12px"><input id="wlS" placeholder="Cari simbol (XAUUSD, BBCA, BTC, EURUSD...)"></div>
-  <div id="wlL"></div>
-</div>
-<div id="pgC" class="pg on">
-  <div id="cW">
-    <canvas id="cv"></canvas>
-    <div id="hnt">Sentuh & tarik di grafik</div>
-    <div id="repBar">
-      <span style="font-size:10px;color:#38bdf8;font-weight:700">REPLAY</span>
-      <button class="rb" id="rStep">Maju 1 Bar</button>
-      <button class="rb" id="rPlay">Play</button>
-      <button class="rb" id="rExit" style="color:#f23645">Keluar</button>
-    </div>
-    <div id="shI" class="sh"><b style="font-size:11px;color:#787b86">INDIKATOR</b>
-      <div class="gr">
-        <button class="op" id="opE20"><span>EMA 20</span><b>OFF</b></button>
-        <button class="op" id="opE50"><span>EMA 50</span><b>OFF</b></button>
-        <button class="op" id="opM100"><span>MA 100</span><b>OFF</b></button>
-        <button class="op" id="opRsi"><span>RSI 14</span><b>OFF</b></button>
-      </div>
-    </div>
-    <div id="shD" class="sh"><b style="font-size:11px;color:#787b86">ALAT GAMBAR</b>
-      <div class="gr">
-        <button class="op" id="opTr"><span>Trendline</span><b>/</b></button>
-        <button class="op" id="opHl"><span>Garis Horizontal</span><b>-</b></button>
-        <button class="op" id="opFb"><span>Fibonacci</span><b>F</b></button>
-        <button class="op" id="opBx"><span>Kotak Zona</span><b>Box</b></button>
-        <button class="op" id="clrD" style="grid-column:span 2;color:#f23645;justify-content:center">Hapus Semua Gambar</button>
-      </div>
-    </div>
-  </div>
-  <div id="bar">
-    <div class="pk" id="openW"><b id="cSym">XAUUSD</b>
-      <select id="tf" onclick="event.stopPropagation()">
-        <option value="1">1m</option><option value="5">5m</option><option value="15" selected>15m</option>
-        <option value="60">1H</option><option value="240">4H</option><option value="1440">1D</option>
-      </select>
-    </div>
-    <button class="tb" id="bRep">Replay</button>
-    <button class="tb" id="bD">Gambar</button>
-    <button class="tb" id="bI">Indikator</button>
-    <button class="tb" id="bC">Crosshair</button>
-    <button class="tb" id="bU">Undo</button>
-    <button class="tb on" id="bA">Auto</button>
-  </div>
-</div>
-<div id="nav">
-  <button class="nv" id="nW">Daftar Pantau</button>
-  <button class="nv on" id="nC">Chart</button>
-  <button class="nv" id="nI">Indikator</button>
-</div>
-<script>
-const ITEMS = Array.of(
-  {s:'XAUUSD',d:'Emas / Dollar A.S.',c:'USD',bg:'#eab308',tx:'AU',p:3568.35,chg:-69.73,pct:-1.92},
-  {s:'USDJPY',d:'Dollar A.S. / Yen Jepang',c:'JPY',bg:'#ef4444',tx:'JP',p:159.04,chg:0.043,pct:0.03},
-  {s:'EURUSD',d:'Euro / Dollar A.S.',c:'USD',bg:'#2563eb',tx:'EU',p:1.0542,chg:0.0018,pct:0.17},
-  {s:'USDIDR',d:'Dollar A.S. / Rupiah',c:'IDR',bg:'#dc2626',tx:'ID',p:15925,chg:35,pct:0.22},
-  {s:'COMPOSITE',d:'Indeks Harga Saham Gabungan',c:'IDR',bg:'#b91c1c',tx:'IDX',p:7241.58,chg:24.15,pct:0.33},
-  {s:'BBCA',d:'Bank Central Asia Tbk',c:'IDR',bg:'#1d4ed8',tx:'BCA',p:10150,chg:125,pct:1.25},
-  {s:'BBRI',d:'Bank Rakyat Indonesia Tbk',c:'IDR',bg:'#0284c7',tx:'BRI',p:4380,chg:-40,pct:-0.90},
-  {s:'BUMI',d:'PT Bumi Resources Tbk',c:'IDR',bg:'#ea580c',tx:'BM',p:129,chg:1,pct:0.78},
-  {s:'BUVA',d:'PT Bukit Uluwatu Villa Tbk',c:'IDR',bg:'#0f766e',tx:'BV',p:294,chg:4,pct:1.38},
-  {s:'WBSA',d:'PT BSA Logistics Indonesia Tbk',c:'IDR',bg:'#dc2626',tx:'BSA',p:446,chg:0,pct:0.00},
-  {s:'SUPA',d:'PT Super Bank Indonesia Tbk',c:'IDR',bg:'#16a34a',tx:'SP',p:342,chg:-4,pct:-1.16},
-  {s:'BULL',d:'PT Buana Lintas Lautan Tbk',c:'IDR',bg:'#991b1b',tx:'BL',p:234,chg:-8,pct:-3.31},
-  {s:'BTCUSD',d:'Bitcoin / Dollar A.S.',c:'USD',bg:'#f97316',tx:'BTC',p:96450,chg:1240,pct:1.30},
-  {s:'ETHUSD',d:'Ethereum / Dollar A.S.',c:'USD',bg:'#6366f1',tx:'ETH',p:3385,chg:-42,pct:-1.22},
-  {s:'SOLUSD',d:'Solana / Dollar A.S.',c:'USD',bg:'#8b5cf6',tx:'SOL',p:238.50,chg:6.80,pct:2.93}
-);
+.sh-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#868993;margin-bottom:6px}
+.cls-sh{background:none;border:none;color:#868993;font-size:14px;cursor:pointer}
+.d-sec{font-size:10px;font-weight:700;color:#787b86;margin:8px 0 5px;text-transform:uppercase}
+.gr{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.gr3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.op,.op3{background:#222631;border:1px solid #2f3441;color:#d1d4dc;padding:8px;border-radius:7px;font-size:11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.op3{justify-content:center;text-align:center;padding:9px 4px}
+.op.on,.op3.on{border-color:#2962ff;background:rgba(41,98,255,.25);color:#fff}
+@media (min-width:768px){#bar{justify-content:center;padding:8px 14px}#nav{max-width:480px;margin:0 auto;width:100%;border-top:none}}
+@media (orientation:landscape) and (max-height:500px){#nav{display:none}#bar{padding:4px 8px}}
+import { initializeApp } from "https://gstatic.com";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://gstatic.com";
 
-let cur = ITEMS.at(0);
-let fullData = Array.of();
-let drw = Array.of();
-let ind = {e20:0, e50:0, m100:0, rsi:0};
-let crOn = 0, tool = null, tmp = null, crI = -1, tmr = null;
-let vC = 55, rO = -10, vS = 1, vP = 0;
-let repPick = 0, repIdx = -1, repTmr = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyCJRCAZD3AvhQ05Jh_LTdJA1OPRCOJbkNc",
+  authDomain: "://firebaseapp.com",
+  projectId: "saber-markets-faa84",
+  storageBucket: "saber-markets-faa84.firebasestorage.app",
+  messagingSenderId: "36930648697",
+  appId: "1:36930648697:web:8bdb794b89048efbf2b2a8"
+};
 
-const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
-const hnt = document.getElementById('hnt');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+let engineLoaded = false;
 
-function getActData() {
-  return repIdx > 0 ? fullData.slice(0, repIdx) : fullData;
-}
-
-function fmt(v, c) {
-  if (c === 'IDR') return v.toLocaleString('id-ID', {maximumFractionDigits: 2});
-  if (v < 10) return v.toFixed(4);
-  return v.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 3});
-}
-
-function renderWL(q) {
-  const query = (q || '').toUpperCase();
-  const list = document.getElementById('wlL');
-  list.innerHTML = '';
-  ITEMS.forEach(function(it) {
-    if (query && !it.s.includes(query) && !it.d.toUpperCase().includes(query)) return;
-    const cls = it.chg > 0 ? 'up' : (it.chg < 0 ? 'dn' : 'nt');
-    const sg = it.chg > 0 ? '+' : '';
-    const el = document.createElement('div');
-    el.className = 'row';
-    el.innerHTML = '<div class="ico" style="background:' + it.bg + '">' + it.tx + '</div>' +
-      '<div class="mid"><div class="sym">' + it.s + '</div><div class="dsc">' + it.d + '</div></div>' +
-      '<div class="rgt"><div class="prc">' + fmt(it.p, it.c) + '</div><div class="chg ' + cls + '">' + sg + fmt(it.chg, it.c) + ' ' + sg + it.pct.toFixed(2) + '%</div></div>';
-    el.onclick = function() {
-      cur = it;
-      document.getElementById('cSym').innerText = it.s;
-      go('c');
-      init();
-    };
-    list.appendChild(el);
-  });
-}
-
-function go(p) {
-  document.getElementById('pgW').classList.toggle('on', p === 'w');
-  document.getElementById('pgC').classList.toggle('on', p === 'c');
-  document.getElementById('nW').classList.toggle('on', p === 'w');
-  document.getElementById('nC').classList.toggle('on', p === 'c');
-  if (p === 'c') setTimeout(draw, 50);
-}
-
-function cdwn(m) {
-  if (repIdx > 0) return 'REPLAY';
-  const d = new Date(), s = d.getSeconds(), mn = d.getMinutes(), h = d.getHours();
-  if (m >= 1440) return String(23 - h).padStart(2, '0') + ':' + String(59 - mn).padStart(2, '0');
-  const l = Math.max(1, m * 60 - (((h * 60 + mn) % m) * 60 + s));
-  return String(Math.floor(l / 60)).padStart(2, '0') + ':' + String(l % 60).padStart(2, '0');
-}
-
-function ema(a, p) {
-  const o = Array.of();
-  let e = a.at(0).c;
-  const k = 2 / (p + 1);
-  a.forEach(function(x) {
-    e = x.c * k + e * (1 - k);
-    o.push(e);
-  });
-  return o;
-}
-
-function sma(a, p) {
-  return a.map(function(_, i) {
-    const s = a.slice(Math.max(0, i - p + 1), i + 1);
-    return s.reduce(function(x, y) { return x + y.c; }, 0) / s.length;
-  });
-}
-
-function rsi(a, p) {
-  return a.map(function(_, i) {
-    if (i < p) return 50;
-    let u = 0, d = 0;
-    for (let j = i - p + 1; j <= i; j++) {
-      const f = a.at(j).c - a.at(j - 1).c;
-      if (f >= 0) u += f; else d -= f;
-    }
-    return 100 - 100 / (1 + (d === 0 ? 100 : u / d));
-  });
-}
-function draw() {
-  const data = getActData();
-  const dpr = window.devicePixelRatio || 1;
-  const rc = cv.parentElement.getBoundingClientRect();
-  if (!rc.width || !rc.height) return;
-  cv.width = rc.width * dpr;
-  cv.height = rc.height * dpr;
-  ctx.scale(dpr, dpr);
-
-  const w = rc.width, h = rc.height;
-  ctx.fillStyle = '#0b0e14';
-  ctx.fillRect(0, 0, w, h);
-  if (!data.length) return;
-
-  const rP = 72, bP = 20, tP = 24;
-  const rH = ind.rsi ? Math.floor(h * 0.22) : 0;
-  const cW = w - rP, cH = h - bP - tP - rH;
-  rO = Math.min(Math.max(0, data.length - 5), Math.max(-Math.floor(vC * 0.75), Math.round(rO)));
-  const end = data.length - rO, st = end - vC;
-
-  let mn = Infinity, mx = -Infinity;
-  for (let i = Math.max(0, st); i < Math.min(data.length, end); i++) {
-    const c = data.at(i);
-    if (c.l < mn) mn = c.l;
-    if (c.h > mx) mx = c.h;
+document.getElementById("btnGoogleLogin").onclick = async function() {
+  const errEl = document.getElementById("authErr");
+  errEl.innerText = "";
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    errEl.innerText = "Gagal masuk: " + (e.message || "Pastikan pop-up browser diizinkan.");
   }
-  if (!isFinite(mn)) {
-    const l = data.at(-1);
-    mn = l.l; mx = l.h;
-  }
+};
 
-  const mid = (mx + mn) / 2, hf = ((mx - mn) || 1) / 2;
-  const sH = (hf * 1.15) / vS, cen = mid + vP * hf;
-  const top = cen + sH, bot = cen - sH, rng = (top - bot) || 1;
+document.getElementById("btnLogout").onclick = function() {
+  signOut(auth);
+};
 
-  const toY = function(p) { return tP + ((top - p) / rng) * cH; };
-  const toP = function(y) { return top - ((y - tP) / cH) * rng; };
-  const sX = cW / vC;
-  const i2x = function(i) { return (i - st) * sX + sX / 2; };
-  const x2i = function(x) { return Math.round(st + (x - sX / 2) / sX); };
-
-  ctx.strokeStyle = '#151922';
-  ctx.lineWidth = 1;
-  ctx.fillStyle = '#787b86';
-  ctx.font = '10px sans-serif';
-  for (let i = 0; i <= 6; i++) {
-    const v = bot + (rng * i) / 6, y = toY(v);
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cW, y); ctx.stroke();
-    ctx.fillText(fmt(v, cur.c), cW + 6, y + 3);
-  }
-
-  ctx.strokeStyle = '#1e222d';
-  ctx.beginPath(); ctx.moveTo(cW, 0); ctx.lineTo(cW, h); ctx.moveTo(0, h - bP); ctx.lineTo(w, h - bP); ctx.stroke();
-  ctx.fillStyle = '#868993';
-  ctx.font = 'bold 10px sans-serif';
-  ctx.fillText(cur.c, cW + 14, 15);
-
-  ctx.save();
-  ctx.beginPath(); ctx.rect(0, tP, cW, cH); ctx.clip();
-  const bW = Math.max(2, sX * 0.64);
-  for (let i = Math.max(0, st); i < Math.min(data.length, end); i++) {
-    const c = data.at(i), x = i2x(i);
-    const col = c.c >= c.o ? '#089981' : '#f23645';
-    ctx.strokeStyle = col; ctx.fillStyle = col;
-    ctx.beginPath(); ctx.moveTo(x, toY(c.h)); ctx.lineTo(x, toY(c.l)); ctx.stroke();
-    const yO = toY(c.o), yC = toY(c.c);
-    ctx.fillRect(x - bW / 2, Math.min(yO, yC), bW, Math.max(2, Math.abs(yC - yO)));
-  }
-
-  function ln(ar, cl) {
-    ctx.strokeStyle = cl; ctx.lineWidth = 1.4; ctx.beginPath();
-    let s = 0;
-    for (let i = Math.max(0, st); i < Math.min(data.length, end); i++) {
-      const x = i2x(i), y = toY(ar.at(i));
-      if (!s) { ctx.moveTo(x, y); s = 1; } else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  if (ind.e20) ln(ema(data, 20), '#2962ff');
-  if (ind.e50) ln(ema(data, 50), '#f59e0b');
-  if (ind.m100) ln(sma(data, 100), '#ec4899');
-
-  const allD = tmp ? drw.concat(tmp) : drw;
-  allD.forEach(function(d) {
-    const x1 = i2x(d.i1), y1 = toY(d.p1), x2 = i2x(d.i2), y2 = toY(d.p2);
-    if (d.t === 'hline') {
-      ctx.strokeStyle = '#f59e0b'; ctx.beginPath(); ctx.moveTo(0, y1); ctx.lineTo(cW, y1); ctx.stroke();
-    } else if (d.t === 'trend') {
-      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-    } else if (d.t === 'box') {
-      ctx.fillStyle = 'rgba(41,98,255,.2)'; ctx.strokeStyle = '#2962ff';
-      ctx.fillRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
-      ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
-    } else if (d.t === 'fib') {
-      Array.of(0, 0.382, 0.5, 0.618, 1).forEach(function(lv) {
-        const pr = d.p1 + (d.p2 - d.p1) * lv, yy = toY(pr);
-        ctx.strokeStyle = '#2962ff'; ctx.beginPath(); ctx.moveTo(Math.min(x1, x2), yy); ctx.lineTo(Math.max(x1, x2) + 40, yy); ctx.stroke();
-        ctx.fillStyle = '#38bdf8'; ctx.fillText((lv * 100).toFixed(1) + '%', Math.min(x1, x2) + 4, yy - 2);
+onAuthStateChanged(auth, function(user) {
+  const gate = document.getElementById("authGate");
+  const shell = document.getElementById("appShell");
+  if (user) {
+    gate.style.display = "none";
+    shell.style.display = "flex";
+    document.getElementById("userBadge").innerText = user.displayName || user.email;
+    if (!engineLoaded) {
+      engineLoaded = true;
+      import("./market.js").then(function(m) {
+        return import("./chart.js").then(function(c) {
+          c.bootChart(m);
+        });
       });
     }
-  });
-
-  const lst = data.at(-1), lY = toY(lst.c), lC = lst.c >= lst.o ? '#089981' : '#f23645';
-  ctx.strokeStyle = lC; ctx.beginPath(); ctx.moveTo(0, lY); ctx.lineTo(cW, lY); ctx.stroke();
-  ctx.restore();
-
-  if (lY >= tP && lY <= tP + cH) {
-    ctx.fillStyle = lC; ctx.fillRect(cW + 2, lY - 14, rP - 4, 28);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.fillText(fmt(lst.c, cur.c), cW + 6, lY - 2);
-    ctx.font = '9px sans-serif'; ctx.fillText(cdwn(Number(document.getElementById('tf').value)), cW + 6, lY + 10);
-  }
-
-  if (ind.rsi) {
-    const rT = tP + cH + 6, rB = rH - 8, rs = rsi(data, 14);
-    ctx.strokeStyle = '#a855f7'; ctx.beginPath();
-    let s = 0;
-    for (let i = Math.max(0, st); i < Math.min(data.length, end); i++) {
-      const x = i2x(i), y = rT + ((100 - rs.at(i)) / 100) * rB;
-      if (!s) { ctx.moveTo(x, y); s = 1; } else ctx.lineTo(x, y);
-    }
-    ctx.stroke(); ctx.fillStyle = '#a855f7'; ctx.fillText('RSI ' + Math.round(rs.at(-1)), cW + 6, rT + rB / 2);
-  }
-
-  if (crOn && crI >= 0 && crI < data.length) {
-    const cc = data.at(crI), cx = i2x(crI), cy = toY(cc.c);
-    ctx.strokeStyle = 'rgba(255,255,255,.4)';
-    ctx.beginPath(); ctx.moveTo(cx, tP); ctx.lineTo(cx, h - bP); ctx.moveTo(0, cy); ctx.lineTo(cW, cy); ctx.stroke();
-    ctx.fillStyle = '#161a23'; ctx.fillRect(8, 8, 220, 18); ctx.fillStyle = '#fff';
-    ctx.fillText('O:' + fmt(cc.o, cur.c) + ' H:' + fmt(cc.h, cur.c) + ' L:' + fmt(cc.l, cur.c) + ' C:' + fmt(cc.c, cur.c), 12, 20);
-  }
-  cv._w = cW; cv._p = toP; cv._i = x2i;
-}
-function stopRep() {
-  if (repTmr) { clearInterval(repTmr); repTmr = null; }
-  document.getElementById('rPlay').innerText = 'Play';
-  document.getElementById('rPlay').classList.remove('act');
-}
-
-function init() {
-  stopRep(); repPick = 0; repIdx = -1;
-  document.getElementById('repBar').classList.remove('on');
-  document.getElementById('bRep').classList.remove('on');
-  hnt.style.display = 'none';
-  if (tmr) clearInterval(tmr);
-  drw = Array.of(); tmp = null; crI = -1; rO = -10; vS = 1; vP = 0;
-  document.getElementById('bA').classList.add('on');
-
-  const anc = cur.p;
-  const m = parseInt(document.getElementById('tf').value, 10) || 15;
-  const vol = anc * (0.0005 * Math.sqrt(Math.min(m, 240)));
-  let c0 = anc * (1 - 0.006 * Math.cos(m)), bi = 0;
-  fullData = Array.of();
-  for (let i = 0; i < 240; i++) {
-    if (i % 14 === 0) bi = (Math.random() - 0.48) * vol * 0.85;
-    const mv = bi + ((anc - c0) / (240 - i)) * 0.25 + (Math.random() - 0.5) * vol * 1.4;
-    const o = c0, c = i === 239 ? anc : o + mv, bd = Math.abs(c - o);
-    fullData.push({o: o, h: Math.max(o, c) + bd * (0.2 + Math.random() * 0.5) + vol * 0.12, l: Math.min(o, c) - bd * (0.2 + Math.random() * 0.5) - vol * 0.12, c: c});
-    c0 = c;
-  }
-  draw();
-  tmr = setInterval(function() {
-    if (repIdx > 0) return;
-    const l = fullData.at(-1);
-    l.c += (Math.random() - 0.495) * l.c * 0.0003;
-    if (l.c > l.h) l.h = l.c;
-    if (l.c < l.l) l.l = l.c;
-    draw();
-  }, 1000);
-}
-
-let dg = 0, md = 'p', sX = 0, sY = 0, sO = 0, sV = 1, sP = 0, pD = 0, pC = 55;
-cv.addEventListener('touchstart', function(e) {
-  document.getElementById('shI').classList.remove('on');
-  document.getElementById('shD').classList.remove('on');
-  const data = getActData(), rc = cv.getBoundingClientRect();
-  if (e.touches.length === 2) {
-    dg = 0;
-    pD = Math.hypot(e.touches.item(0).clientX - e.touches.item(1).clientX, e.touches.item(0).clientY - e.touches.item(1).clientY);
-    pC = vC;
-    return;
-  }
-  const t = e.touches.item(0), x = t.clientX - rc.left, y = t.clientY - rc.top;
-  if (repPick && cv._i) {
-    repIdx = Math.min(fullData.length - 2, Math.max(15, cv._i(x) + 1));
-    repPick = 0; hnt.style.display = 'none';
-    document.getElementById('repBar').classList.add('on');
-    rO = -6; draw(); return;
-  }
-  if (tool && cv._p && cv._i) {
-    const i = cv._i(x), pr = cv._p(y);
-    if (tool === 'hline') {
-      drw.push({t: 'hline', i1: i, p1: pr, i2: i, p2: pr});
-      tool = null; hnt.style.display = 'none';
-      document.getElementById('bD').classList.remove('on');
-      draw(); return;
-    }
-    tmp = {t: tool, i1: i, p1: pr, i2: i, p2: pr}; draw(); return;
-  }
-  if (crOn && cv._i) {
-    crI = Math.min(data.length - 1, Math.max(0, cv._i(x))); draw(); return;
-  }
-  dg = 1; sX = x; sY = y; sO = rO; sV = vS; sP = vP;
-  md = (cv._w && x > cv._w) ? 'v' : 'p';
-}, {passive: false});
-
-cv.addEventListener('touchmove', function(e) {
-  e.preventDefault();
-  const data = getActData(), rc = cv.getBoundingClientRect();
-  if (e.touches.length === 2 && pD > 0) {
-    const d = Math.hypot(e.touches.item(0).clientX - e.touches.item(1).clientX, e.touches.item(0).clientY - e.touches.item(1).clientY);
-    vC = Math.min(200, Math.max(12, Math.round(pC * (pD / Math.max(10, d)))));
-    draw(); return;
-  }
-  const t = e.touches.item(0), x = t.clientX - rc.left, y = t.clientY - rc.top;
-  if (tmp && cv._p && cv._i) { tmp.i2 = cv._i(x); tmp.p2 = cv._p(y); draw(); return; }
-  if (crOn && cv._i) { crI = Math.min(data.length - 1, Math.max(0, cv._i(x))); draw(); return; }
-  if (!dg) return;
-  if (md === 'v') {
-    vS = Math.min(4.5, Math.max(0.25, sV * Math.exp(-(y - sY) * 0.008)));
-    document.getElementById('bA').classList.remove('on'); draw();
   } else {
-    rO = sO + ((x - sX) / ((cv._w || 300) / vC));
-    if (!document.getElementById('bA').classList.contains('on')) vP = sP + ((y - sY) / 140) / vS;
-    draw();
+    gate.style.display = "flex";
+    shell.style.display = "none";
   }
-}, {passive: false});
-
-cv.addEventListener('touchend', function() {
-  if (tmp) {
-    drw.push(tmp); tmp = null; tool = null; hnt.style.display = 'none';
-    document.getElementById('bD').classList.remove('on'); draw();
-  }
-  dg = 0; pD = 0;
 });
+export const WORKER_URL = "https://workers.dev";
 
-document.getElementById('bRep').onclick = function() {
-  if (repIdx > 0 || repPick) {
-    stopRep(); repPick = 0; repIdx = -1;
-    document.getElementById('repBar').classList.remove('on');
-    document.getElementById('bRep').classList.remove('on');
-    hnt.style.display = 'none'; draw();
-  } else {
-    repPick = 1; document.getElementById('bRep').classList.add('on');
-    hnt.innerText = 'Sentuh candle tempat potong chart'; hnt.style.display = 'block';
-  }
-};
-document.getElementById('rStep').onclick = function() {
-  if (repIdx > 0 && repIdx < fullData.length) { repIdx++; draw(); }
-  else { stopRep(); repIdx = -1; document.getElementById('repBar').classList.remove('on'); document.getElementById('bRep').classList.remove('on'); draw(); }
-};
-document.getElementById('rPlay').onclick = function() {
-  if (repTmr) { stopRep(); }
-  else {
-    document.getElementById('rPlay').innerText = 'Pause';
-    document.getElementById('rPlay').classList.add('act');
-    repTmr = setInterval(function() {
-      if (repIdx > 0 && repIdx < fullData.length) { repIdx++; draw(); }
-      else { stopRep(); repIdx = -1; document.getElementById('repBar').classList.remove('on'); document.getElementById('bRep').classList.remove('on'); draw(); }
-    }, 700);
-  }
-};
-document.getElementById('rExit').onclick = function() {
-  stopRep(); repPick = 0; repIdx = -1;
-  document.getElementById('repBar').classList.remove('on');
-  document.getElementById('bRep').classList.remove('on'); draw();
-};
+export const ITEMS = Array.of(
+  {id:1,s:'XAUUSD',ySym:'GC=F',br:'OANDA',bBg:'#0284c7',bTx:'O',typ:'commodity cfd',cat:'Komoditas',d:'Gold',c:'USD',bg:'#eab308',tx:'AU',p:3568.35,chg:-12.40,pct:-0.35,dec:2,off:0.0,wl:1},
+  {id:2,s:'XAUUSD',ySym:'GC=F',br:'FOREXCOM',bBg:'#16a34a',bTx:'F',typ:'commodity cfd',cat:'Komoditas',d:'Gold / U.S. Dollar',c:'USD',bg:'#eab308',tx:'AU',p:3568.20,chg:-12.55,pct:-0.35,dec:2,off:-0.15,wl:0},
+  {id:3,s:'XAUUSD',ySym:'GC=F',br:'ICE',bBg:'#2563eb',bTx:'I',typ:'commodity cfd',cat:'Komoditas',d:'GOLD / U.S. DOLLAR',c:'USD',bg:'#eab308',tx:'AU',p:3568.45,chg:-12.30,pct:-0.34,dec:2,off:0.10,wl:0},
+  {id:4,s:'GOLD',ySym:'GC=F',br:'TVC',bBg:'#1e293b',bTx:'TV',typ:'commodity cfd',cat:'Komoditas',d:'Gold',c:'USD',bg:'#eab308',tx:'AU',p:3568.30,chg:-12.45,pct:-0.35,dec:2,off:-0.05,wl:1},
+  {id:5,s:'XAUUSD',ySym:'GC=F',br:'FXCM',bBg:'#0369a1',bTx:'FX',typ:'commodity cfd',cat:'Komoditas',d:'XAU/USD Spot - Gold',c:'USD',bg:'#eab308',tx:'AU',p:3568.10,chg:-12.65,pct:-0.35,dec:2,off:-0.25,wl:0},
+  {id:6,s:'XAUUSD',ySym:'GC=F',br:'Pepperstone',bBg:'#1d4ed8',bTx:'P',typ:'commodity cfd',cat:'Komoditas',d:'Gold vs US Dollar',c:'USD',bg:'#eab308',tx:'AU',p:3568.50,chg:-12.25,pct:-0.34,dec:2,off:0.15,wl:0},
+  {id:7,s:'XAGUSD',ySym:'SI=F',br:'OANDA',bBg:'#0284c7',bTx:'O',typ:'commodity cfd',cat:'Komoditas',d:'Silver / US Dollar',c:'USD',bg:'#64748b',tx:'AG',p:31.45,chg:0.32,pct:1.03,dec:3,off:0.0,wl:0},
+  {id:8,s:'BTCUSD',ySym:'BTC-USD',br:'CRYPTO',bBg:'#1e293b',bTx:'TV',typ:'spot crypto',cat:'Kripto',d:'Bitcoin',c:'USD',bg:'#f97316',tx:'B',p:96450.00,chg:840.00,pct:0.88,dec:2,off:0.0,wl:1},
+  {id:9,s:'BTCUSDT',ySym:'BTC-USD',br:'Binance',bBg:'#eab308',bTx:'BN',typ:'spot crypto',cat:'Kripto',d:'Bitcoin / TetherUS',c:'USD',bg:'#f97316',tx:'B',p:96465.50,chg:855.50,pct:0.89,dec:2,off:15.5,wl:0},
+  {id:10,s:'BTCUSD',ySym:'BTC-USD',br:'Bitstamp',bBg:'#16a34a',bTx:'BS',typ:'spot crypto',cat:'Kripto',d:'Bitcoin / U.S. dollar',c:'USD',bg:'#f97316',tx:'B',p:96440.00,chg:830.00,pct:0.87,dec:2,off:-10.0,wl:1},
+  {id:11,s:'ETHUSDT',ySym:'ETH-USD',br:'Binance',bBg:'#eab308',bTx:'BN',typ:'spot crypto',cat:'Kripto',d:'Ethereum / TetherUS',c:'USD',bg:'#6366f1',tx:'E',p:3385.50,chg:-42.00,pct:-1.22,dec:2,off:0.0,wl:0},
+  {id:12,s:'SOLUSDT',ySym:'SOL-USD',br:'Bybit',bBg:'#f59e0b',bTx:'BY',typ:'spot crypto',cat:'Kripto',d:'Solana / TetherUS',c:'USD',bg:'#8b5cf6',tx:'S',p:238.50,chg:6.80,pct:2.93,dec:2,off:0.0,wl:0},
+  {id:13,s:'DXY',ySym:'DX-Y.NYB',br:'TVC',bBg:'#1e293b',bTx:'TV',typ:'index cfd',cat:'Indeks',d:'U.S. Dollar Currency Index',c:'USD',bg:'#16a34a',tx:'$',p:106.85,chg:0.24,pct:0.23,dec:2,off:0.0,wl:1},
+  {id:14,s:'COMPOSITE',ySym:'^JKSE',br:'IDX',bBg:'#dc2626',bTx:'ID',typ:'index',cat:'Indeks',d:'IDX Composite Index',c:'IDR',bg:'#b91c1c',tx:'IDX',p:7241.58,chg:24.15,pct:0.33,dec:2,off:0.0,wl:1},
+  {id:15,s:'USDJPY',ySym:'JPY=X',br:'OANDA',bBg:'#0284c7',bTx:'O',typ:'forex',cat:'Forex',d:'Dollar A.S. / Yen Jepang',c:'JPY',bg:'#ef4444',tx:'JP',p:159.04,chg:0.18,pct:0.11,dec:3,off:0.0,wl:1},
+  {id:16,s:'EURUSD',ySym:'EURUSD=X',br:'OANDA',bBg:'#0284c7',bTx:'O',typ:'forex',cat:'Forex',d:'Euro / Dollar A.S.',c:'USD',bg:'#2563eb',tx:'EU',p:1.0542,chg:0.0018,pct:0.17,dec:4,off:0.0,wl:1},
+  {id:17,s:'GBPUSD',ySym:'GBPUSD=X',br:'Pepperstone',bBg:'#1d4ed8',bTx:'P',typ:'forex',cat:'Forex',d:'Pound Inggris / Dollar A.S.',c:'USD',bg:'#4f46e5',tx:'GB',p:1.2645,chg:-0.0021,pct:-0.17,dec:4,off:0.0,wl:0},
+  {id:18,s:'USDIDR',ySym:'IDR=X',br:'FXCM',bBg:'#0369a1',bTx:'FX',typ:'forex',cat:'Forex',d:'Dollar A.S. / Rupiah',c:'IDR',bg:'#dc2626',tx:'ID',p:15925,chg:35,pct:0.22,dec:0,off:0.0,wl:1},
+  {id:19,s:'BBCA',ySym:'BBCA.JK',br:'IDX',bBg:'#dc2626',bTx:'ID',typ:'stock',cat:'Saham',d:'Bank Central Asia Tbk',c:'IDR',bg:'#1d4ed8',tx:'BCA',p:10150,chg:125,pct:1.25,dec:0,off:0.0,wl:1},
+  {id:20,s:'BBRI',ySym:'BBRI.JK',br:'IDX',bBg:'#dc2626',bTx:'ID',typ:'stock',cat:'Saham',d:'Bank Rakyat Indonesia Tbk',c:'IDR',bg:'#0284c7',tx:'BRI',p:4380,chg:-40,pct:-0.90,dec:0,off:0.0,wl:1},
+  {id:21,s:'BUMI',ySym:'BUMI.JK',br:'IDX',bBg:'#dc2626',bTx:'ID',typ:'stock',cat:'Saham',d:'PT Bumi Resources Tbk Class A',c:'IDR',bg:'#ea580c',tx:'BM',p:129,chg:1,pct:0.78,dec:0,off:0.0,wl:1},
+  {id:22,s:'BUVA',ySym:'BUVA.JK',br:'IDX',bBg:'#dc2626',bTx:'ID',typ:'stock',cat:'Saham',d:'PT Bukit Uluwatu Villa Tbk',c:'IDR',bg:'#0f766e',tx:'BV',p:294,chg:4,pct:1.38,dec:0,off:0.0,wl:1},
+  {id:23,s:'NVDA',ySym:'NVDA',br:'NASDAQ',bBg:'#0284c7',bTx:'NQ',typ:'stock',cat:'Saham',d:'NVIDIA Corporation',c:'USD',bg:'#16a34a',tx:'NV',p:142.50,chg:3.20,pct:2.30,dec:2,off:0.0,wl:0}
+);
 
-function togInd(k, el) {
-  ind[k] = !ind[k]; el.classList.toggle('on', ind[k]);
-  el.querySelector('b').innerText = ind[k] ? 'ON' : 'OFF'; draw();
+const savedWl = JSON.parse(localStorage.getItem('saber_wl') || 'null');
+if (savedWl && Array.isArray(savedWl)) {
+  ITEMS.forEach(function(it) { it.wl = savedWl.includes(it.id) ? 1 : 0; });
 }
-document.getElementById('opE20').onclick = function() { togInd('e20', this); };
-document.getElementById('opE50').onclick = function() { togInd('e50', this); };
-document.getElementById('opM100').onclick = function() { togInd('m100', this); };
-document.getElementById('opRsi').onclick = function() { togInd('rsi', this); };
 
-function setTl(t) {
-  tool = t; document.getElementById('shD').classList.remove('on');
-  document.getElementById('bD').classList.add('on');
-  hnt.innerText = 'Sentuh & tarik di grafik'; hnt.style.display = 'block';
+export function saveWatchlist() {
+  const ids = ITEMS.filter(function(x) { return x.wl; }).map(function(x) { return x.id; });
+  localStorage.setItem('saber_wl', JSON.stringify(ids));
 }
-document.getElementById('opTr').onclick = function() { setTl('trend'); };
-document.getElementById('opHl').onclick = function() { setTl('hline'); };
-document.getElementById('opFb').onclick = function() { setTl('fib'); };
-document.getElementById('opBx').onclick = function() { setTl('box'); };
 
-document.getElementById('nW').onclick = function() { go('w'); };
-document.getElementById('nC').onclick = function() { go('c'); };
-document.getElementById('nI').onclick = function() { go('c'); document.getElementById('shD').classList.remove('on'); document.getElementById('shI').classList.toggle('on'); };
-document.getElementById('openW').onclick = function() { go('w'); };
-document.getElementById('wlS').oninput = function(e) { renderWL(e.target.value); };
-document.getElementById('bD').onclick = function() { document.getElementById('shI').classList.remove('on'); document.getElementById('shD').classList.toggle('on'); };
-document.getElementById('bI').onclick = function() { document.getElementById('shD').classList.remove('on'); document.getElementById('shI').classList.toggle('on'); };
-document.getElementById('bC').onclick = function() { crOn = !crOn; this.classList.toggle('on', crOn); if (!crOn) crI = -1; draw(); };
-document.getElementById('bU').onclick = function() { drw.pop(); draw(); };
-document.getElementById('bA').onclick = function() { vS = 1; vP = 0; rO = -10; this.classList.add('on'); draw(); };
-document.getElementById('clrD').onclick = function() { drw = Array.of(); document.getElementById('shD').classList.remove('on'); draw(); };
-window.addEventListener('resize', function() { setTimeout(draw, 80); });
-document.getElementById('tf').onchange = init;
-renderWL('');
-init();
-</script>
-</body>
-</html>
+export function fmt(v, item) {
+  if (typeof v !== 'number' || isNaN(v)) return '0.00';
+  const d = item ? item.dec : 2;
+  if (item && item.c === 'IDR' && d === 0) return Math.round(v).toLocaleString('id-ID');
+  return v.toFixed(d);
+}
+
+export function niceStep(range) {
+  const rough = range / 6;
+  const pow = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / pow;
+  let step = 1;
+  if (norm < 1.5) step = 1;
+  else if (norm < 3) step = 2;
+  else if (norm < 7) step = 5;
+  else step = 10;
+  return step * pow;
+}
+
+export async function fetchRealCandles(item, tf) {
+  const rangeMap = { '1m': '1d', '5m': '5d', '15m': '5d', '1h': '1mo', '4h': '3mo', '1d': '1y' };
+  const yInt = tf === '4h' ? '1h' : tf;
+  const rng = rangeMap[tf] || '5d';
+  const url = WORKER_URL + '?symbol=' + encodeURIComponent(item.ySym) + '&interval=' + yInt + '&range=' + rng;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  const result = json && json.chart && json.chart.result && json.chart.result.at(0);
+  if (!result || !result.timestamp || !result.indicators || !result.indicators.quote) {
+    throw new Error('Data pasar kosong');
+  }
+
+  const ts = result.timestamp;
+  const q = result.indicators.quote.at(0);
+  const off = item.off || 0;
+  const candles = Array.of();
+
+  for (let i = 0; i < ts.length; i++) {
+    const o = q.open.at(i), h = q.high.at(i), l = q.low.at(i), c = q.close.at(i);
+    if (o == null || h == null || l == null || c == null) continue;
+    candles.push({ t: ts.at(i), o: o + off, h: h + off, l: l + off, c: c + off });
+  }
+
+  if (tf === '4h' && candles.length > 4) {
+    const grouped = Array.of();
+    for (let i = 0; i < candles.length; i += 4) {
+      const chunk = candles.slice(i, i + 4);
+      grouped.push({
+        t: chunk.at(0).t,
+        o: chunk.at(0).o,
+        h: Math.max.apply(null, chunk.map(function(x) { return x.h; })),
+        l: Math.min.apply(null, chunk.map(function(x) { return x.l; })),
+        c: chunk.at(-1).c
+      });
+    }
+    return grouped;
+  }
+  return candles;
+}
